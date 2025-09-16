@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:kaski_nfc_app/consumer_card_dto.dart';
-import 'package:kaski_nfc_app/nfc_provider.dart';
 import 'package:provider/provider.dart';
+import '../providers/nfc_provider.dart';
+import '../models/consumer_card_dto.dart';
 
 class ReadCardScreen extends StatefulWidget {
   const ReadCardScreen({super.key});

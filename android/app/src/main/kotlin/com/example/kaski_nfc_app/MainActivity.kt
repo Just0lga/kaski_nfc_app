@@ -170,7 +170,28 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
 
     private fun sendEvent(eventData: Map<String, Any>) {
         Handler(Looper.getMainLooper()).post {
-            eventSink?.success(eventData)
+            try {
+                // Debug: Event data'yı kontrol et
+                println("📤 Sending event: ${eventData["type"]}")
+                eventData.forEach { (key, value) ->
+                    println("🔑 $key: $value (${value?.javaClass?.simpleName})")
+                }
+                
+                eventSink?.success(eventData)
+            } catch (e: Exception) {
+                println("❌ Error sending event: $e")
+                // Hata durumunda sadece basit veri gönder
+                val safeEventData = mapOf(
+                    "type" to eventData["type"],
+                    "code" to eventData["code"],
+                    "message" to "Error occurred: ${e.message}"
+                )
+                try {
+                    eventSink?.success(safeEventData)
+                } catch (e2: Exception) {
+                    println("❌ Failed to send safe event: $e2")
+                }
+            }
         }
     }
 
@@ -183,10 +204,12 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
     }
 
     override fun ReadCardResult(consumerCardDTO: ConsumerCardDTO?, code: ResultCode) {
+        println("🔍 ReadCardResult called - Code: $code, DTO is null: ${consumerCardDTO == null}")
+        
         val cardDataMap = mutableMapOf<String, Any?>()
         
-        if (consumerCardDTO != null) {
-            // Orijinal field isimlerini kullanarak reflection ile veriyi alıyoruz
+        if (consumerCardDTO != null && code == ResultCode.Success) {
+            // Reflection ile tüm field'ları oku ama complex object'leri String'e çevir
             try {
                 val fields = consumerCardDTO::class.java.declaredFields
                 for (field in fields) {
@@ -194,20 +217,55 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
                     val fieldName = field.name
                     val value = field.get(consumerCardDTO)
                     
-                    // Field isimlerini Flutter tarafının beklediği formata çeviriyoruz
-                    when (fieldName) {
-                        "mainCredit" -> cardDataMap["mainCredit"] = value
-                        "reserveCredit" -> cardDataMap["reserveCredit"] = value
-                        "criticalCreditLimit" -> cardDataMap["criticalCreditLimit"] = value
-                        else -> cardDataMap[fieldName] = value
+                    // Complex object'leri String'e çevir
+                    val processedValue = when {
+                        value == null -> null
+                        value is String -> value
+                        value is Number -> value
+                        value is Boolean -> value
+                        value.javaClass.isEnum -> value.toString() // Enum'ları String'e çevir
+                        value.javaClass.name.contains("CardStatus") -> value.toString() // CardStatus object'ini String'e çevir
+                        value.javaClass.name.contains("Date") -> value.toString() // Date object'ini String'e çevir
+                        else -> {
+                            // Diğer complex object'ler için toString() kullan
+                            try {
+                                value.toString()
+                            } catch (e: Exception) {
+                                "Unknown"
+                            }
+                        }
                     }
+                    
+                    cardDataMap[fieldName] = processedValue
                 }
+                
+                // Debug log - hangi field'lar geldi?
+                println("🔍 Card data fields: ${cardDataMap.keys}")
+                cardDataMap.forEach { (key, value) -> 
+                    println("📊 $key: $value (${value?.javaClass?.simpleName})")
+                }
+                
             } catch (e: Exception) {
-                // Fallback: Sadece temel alanları kullan
+                println("❌ Reflection error: $e")
+                // Fallback: Manuel field mapping
                 cardDataMap["mainCredit"] = consumerCardDTO.mainCredit
-                cardDataMap["reserveCredit"] = consumerCardDTO.reserveCredit
+                cardDataMap["reserveCredit"] = consumerCardDTO.reserveCredit  
                 cardDataMap["criticalCreditLimit"] = consumerCardDTO.criticalCreditLimit
+                // Diğer field'ları da manuel olarak ekleyelim
+                try {
+                    // Field'ları manuel olarak kontrol et
+                    cardDataMap["cardId"] = safeFieldAccess(consumerCardDTO, "cardId")
+                    cardDataMap["cardNumber"] = safeFieldAccess(consumerCardDTO, "cardNumber")
+                    cardDataMap["customerName"] = safeFieldAccess(consumerCardDTO, "customerName")
+                    cardDataMap["customerId"] = safeFieldAccess(consumerCardDTO, "customerId")
+                    cardDataMap["cardStatus"] = safeFieldAccess(consumerCardDTO, "cardStatus")
+                    cardDataMap["lastTransactionDate"] = safeFieldAccess(consumerCardDTO, "lastTransactionDate")
+                } catch (e2: Exception) {
+                    println("❌ Manual field access error: $e2")
+                }
             }
+        } else if (code != ResultCode.Success) {
+            println("⚠️ Card read not successful. Code: $code")
         }
         
         sendEvent(mapOf(
@@ -215,6 +273,24 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
             "code" to code.name,
             "cardData" to cardDataMap
         ))
+    }
+    
+    private fun safeFieldAccess(obj: Any, fieldName: String): String? {
+        return try {
+            val field = obj.javaClass.getDeclaredField(fieldName)
+            field.isAccessible = true
+            val value = field.get(obj)
+            when {
+                value == null -> null
+                value is String -> value
+                value is Number -> value.toString()
+                value.javaClass.isEnum -> value.toString()
+                else -> value.toString()
+            }
+        } catch (e: Exception) {
+            println("⚠️ Could not access field $fieldName: $e")
+            null
+        }
     }
 
     override fun WriteCardResult(code: ResultCode) {

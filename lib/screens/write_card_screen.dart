@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:kaski_nfc_app/credit_request_dto.dart';
-import 'package:kaski_nfc_app/enums.dart';
-import 'package:kaski_nfc_app/nfc_provider.dart';
 import 'package:provider/provider.dart';
+import '../providers/nfc_provider.dart';
+import '../models/credit_request_dto.dart';
+import '../models/enums.dart';
 
 class WriteCardScreen extends StatefulWidget {
   const WriteCardScreen({super.key});

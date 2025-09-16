@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:kaski_nfc_app/home_screen.dart';
-import 'package:kaski_nfc_app/nfc_provider.dart';
 import 'package:provider/provider.dart';
+import 'providers/nfc_provider.dart';
+import 'screens/home_screen.dart';
 
 void main() {
   runApp(const MyApp());

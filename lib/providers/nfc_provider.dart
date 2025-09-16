@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:kaski_nfc_app/consumer_card_dto.dart';
-import 'package:kaski_nfc_app/credit_request_dto.dart';
+import '../models/consumer_card_dto.dart';
+import '../models/credit_request_dto.dart';
+import '../models/enums.dart';
 import 'package:uuid/uuid.dart';
 
 class NFCProvider extends ChangeNotifier {
