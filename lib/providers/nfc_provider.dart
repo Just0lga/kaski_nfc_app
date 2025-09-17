@@ -52,28 +52,44 @@ class NFCProvider extends ChangeNotifier {
   }
 
   void _handleNFCEvent(dynamic event) {
-    final Map<String, dynamic> eventData = Map<String, dynamic>.from(event);
-    final String eventType = eventData['type'] ?? '';
+    try {
+      final Map<String, dynamic> eventData = Map<String, dynamic>.from(event);
+      final String eventType = eventData['type'] ?? '';
 
-    switch (eventType) {
-      case 'licenseStatus':
-        _handleLicenseStatus(eventData);
-        break;
-      case 'onResult':
-        _handleOnResult(eventData);
-        break;
-      case 'readCardResult':
-        _handleReadCardResult(eventData);
-        break;
-      case 'writeCardResult':
-        _handleWriteCardResult(eventData);
-        break;
+      print('📱 Received NFC Event: $eventType');
+      print('📊 Event data: $eventData');
+
+      switch (eventType) {
+        case 'licenseStatus':
+          _handleLicenseStatus(eventData);
+          break;
+        case 'onResult':
+          _handleOnResult(eventData);
+          break;
+        case 'readCardResult':
+          _handleReadCardResult(eventData);
+          break;
+        case 'writeCardResult':
+          _handleWriteCardResult(eventData);
+          break;
+        case 'error':
+          _handleError(eventData);
+          break;
+        default:
+          print('⚠️ Unknown event type: $eventType');
+      }
+    } catch (e) {
+      print('❌ Error handling NFC event: $e');
+      _message = 'Error processing NFC event: $e';
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
   void _handleLicenseStatus(Map<String, dynamic> eventData) {
     final String? message = eventData['message'];
     _licenseStatus = message ?? 'Unknown license status';
+    print('📄 License status updated: $_licenseStatus');
     notifyListeners();
   }
 
@@ -87,20 +103,47 @@ class NFCProvider extends ChangeNotifier {
       _isLoading = false;
     }
 
+    print('🔄 OnResult - Tag: $tag, Code: $resultCode');
     notifyListeners();
   }
 
   void _handleReadCardResult(Map<String, dynamic> eventData) {
     _isLoading = false;
     final String? resultCode = eventData['code'];
-    final Map<String, dynamic>? cardDataMap = eventData['cardData'];
 
-    if (resultCode == 'Success' && cardDataMap != null) {
-      _cardData = ConsumerCardDTO.fromJson(cardDataMap);
-      _message = 'Card read successfully';
+    print('📖 Read card result - Code: $resultCode');
+
+    if (resultCode == 'Success') {
+      final dynamic cardDataRaw = eventData['cardData'];
+
+      if (cardDataRaw != null) {
+        try {
+          // cardDataRaw'ı Map<String, dynamic> formatına çevir
+          final Map<String, dynamic> cardDataMap = _safeConvertToMap(
+            cardDataRaw,
+          );
+
+          print('🗺️ Safe card data map: $cardDataMap');
+
+          // ConsumerCardDTO'ya çevir
+          _cardData = ConsumerCardDTO.fromJson(cardDataMap);
+          _message = 'Card read successfully';
+
+          print('✅ Card data created successfully: $_cardData');
+        } catch (e) {
+          print('❌ Error converting card data: $e');
+          _message = 'Error processing card data: $e';
+          _cardData = null;
+        }
+      } else {
+        print('⚠️ Card data is null');
+        _message = 'Card data is empty';
+        _cardData = null;
+      }
     } else {
       _message = _getErrorMessage(resultCode);
       _cardData = null;
+      print('❌ Card read failed: $resultCode');
     }
 
     notifyListeners();
@@ -112,11 +155,59 @@ class NFCProvider extends ChangeNotifier {
 
     if (resultCode == 'Success') {
       _message = 'Card written successfully';
+      print('✅ Card write successful');
     } else {
       _message = _getErrorMessage(resultCode);
+      print('❌ Card write failed: $resultCode');
     }
 
     notifyListeners();
+  }
+
+  void _handleError(Map<String, dynamic> eventData) {
+    _isLoading = false;
+    final String? errorMessage = eventData['message'];
+    _message = errorMessage ?? 'Unknown error occurred';
+    print('❌ Error event: $_message');
+    notifyListeners();
+  }
+
+  Map<String, dynamic> _safeConvertToMap(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      return data;
+    } else if (data is Map) {
+      // Diğer Map türlerini dönüştür
+      final Map<String, dynamic> result = {};
+      data.forEach((key, value) {
+        if (key is String) {
+          result[key] = _safeConvertValue(value);
+        }
+      });
+      return result;
+    } else {
+      print('⚠️ Data is not a map: ${data.runtimeType}');
+      return {};
+    }
+  }
+
+  dynamic _safeConvertValue(dynamic value) {
+    if (value == null) {
+      return null;
+    } else if (value is String ||
+        value is int ||
+        value is double ||
+        value is bool) {
+      return value;
+    } else if (value is num) {
+      return value.toDouble();
+    } else if (value is Map) {
+      return _safeConvertToMap(value);
+    } else if (value is List) {
+      return value.map(_safeConvertValue).toList();
+    } else {
+      // Diğer türler için string'e çevir
+      return value.toString();
+    }
   }
 
   String _getErrorMessage(String? resultCode) {
@@ -127,8 +218,10 @@ class NFCProvider extends ChangeNotifier {
         return 'Please read the card again!';
       case 'Failed':
         return 'Operation failed!';
+      case null:
+        return 'Unknown error occurred';
       default:
-        return 'Unknown error: $resultCode';
+        return 'Error: $resultCode';
     }
   }
 
@@ -177,9 +270,11 @@ class NFCProvider extends ChangeNotifier {
     try {
       final String requestId = _uuid.v4();
       await platform.invokeMethod('readCard', {'requestId': requestId});
+      print('📖 Read card request sent with ID: $requestId');
     } catch (e) {
       _isLoading = false;
       _message = 'Failed to read card: $e';
+      print('❌ Read card error: $e');
       notifyListeners();
     }
   }
@@ -191,10 +286,39 @@ class NFCProvider extends ChangeNotifier {
 
     try {
       creditRequest.requestId = _uuid.v4();
-      await platform.invokeMethod('writeCard', creditRequest.toJson());
+
+      // CreditRequestDTO'yu Map'e çevir ve enum'ları string'e dönüştür
+      final Map<String, dynamic> requestMap = creditRequest.toJson();
+
+      // OperationType enum'ını string'e çevir
+      if (requestMap['operationType'] != null) {
+        final operationType = creditRequest.operationType;
+        String operationTypeString = '';
+
+        switch (operationType) {
+          case OperationType.none:
+            operationTypeString = 'None';
+            break;
+          case OperationType.addCredit:
+            operationTypeString = 'AddCredit';
+            break;
+          case OperationType.clearCredits:
+            operationTypeString = 'ClearCredits';
+            break;
+          case OperationType.setCredit:
+            operationTypeString = 'SetCredit';
+            break;
+        }
+
+        requestMap['operationType'] = operationTypeString;
+      }
+
+      print('💳 Write card request: $requestMap');
+      await platform.invokeMethod('writeCard', requestMap);
     } catch (e) {
       _isLoading = false;
       _message = 'Failed to write card: $e';
+      print('❌ Write card error: $e');
       notifyListeners();
     }
   }

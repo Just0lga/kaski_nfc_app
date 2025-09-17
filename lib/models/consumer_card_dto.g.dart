@@ -13,6 +13,7 @@ ConsumerCardDTO _$ConsumerCardDTOFromJson(Map<String, dynamic> json) =>
       criticalCreditLimit: (json['criticalCreditLimit'] as num?)?.toDouble(),
       cardId: json['cardId'] as String?,
       cardNumber: json['cardNumber'] as String?,
+      cardSeriNo: json['cardSeriNo'] as String?,
       lastTransactionDate: json['lastTransactionDate'] == null
           ? null
           : DateTime.parse(json['lastTransactionDate'] as String),
@@ -28,6 +29,7 @@ Map<String, dynamic> _$ConsumerCardDTOToJson(ConsumerCardDTO instance) =>
       'criticalCreditLimit': instance.criticalCreditLimit,
       'cardId': instance.cardId,
       'cardNumber': instance.cardNumber,
+      'cardSeriNo': instance.cardSeriNo,
       'lastTransactionDate': instance.lastTransactionDate?.toIso8601String(),
       'cardStatus': instance.cardStatus,
       'customerName': instance.customerName,

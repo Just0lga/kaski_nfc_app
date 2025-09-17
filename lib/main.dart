@@ -4,6 +4,13 @@ import 'providers/nfc_provider.dart';
 import 'screens/home_screen.dart';
 
 void main() {
+  // Hata yakalama
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    print('🚨 Flutter Error: ${details.exception}');
+    print('📍 Stack trace: ${details.stack}');
+  };
+
   runApp(const MyApp());
 }
 
@@ -13,7 +20,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => NFCProvider(),
+      create: (context) {
+        print('🏁 Creating NFCProvider...');
+        return NFCProvider();
+      },
       child: MaterialApp(
         title: 'Baylan NFC Card Credit App',
         theme: ThemeData(
@@ -38,6 +48,39 @@ class MyApp extends StatelessWidget {
         ),
         home: const HomeScreen(),
         debugShowCheckedModeBanner: false,
+        // Global hata yakalama
+        builder: (context, widget) {
+          ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
+            print('🚨 Widget Error: ${errorDetails.exception}');
+            return Material(
+              child: Container(
+                color: Colors.red[100],
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error, color: Colors.red, size: 48),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Something went wrong!',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      errorDetails.exception.toString(),
+                      style: const TextStyle(fontSize: 14),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          };
+          return widget!;
+        },
       ),
     );
   }

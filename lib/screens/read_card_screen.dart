@@ -18,6 +18,8 @@ class _ReadCardScreenState extends State<ReadCardScreen>
   @override
   void initState() {
     super.initState();
+    print('🏁 ReadCardScreen initialized');
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
@@ -46,7 +48,10 @@ class _ReadCardScreenState extends State<ReadCardScreen>
               if (nfcProvider.cardData != null) {
                 return IconButton(
                   icon: const Icon(Icons.refresh),
-                  onPressed: () => nfcProvider.readCard(),
+                  onPressed: () {
+                    print('🔄 Refresh button pressed - reading card again');
+                    nfcProvider.readCard();
+                  },
                   tooltip: 'Read Again',
                 );
               }
@@ -146,7 +151,10 @@ class _ReadCardScreenState extends State<ReadCardScreen>
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
-                              onPressed: () => nfcProvider.readCard(),
+                              onPressed: () {
+                                print('📖 Read card button pressed');
+                                nfcProvider.readCard();
+                              },
                               icon: const Icon(Icons.credit_card),
                               label: const Text('Read Card'),
                               style: ElevatedButton.styleFrom(
@@ -285,29 +293,9 @@ class _ReadCardScreenState extends State<ReadCardScreen>
   }
 
   Widget _buildCardDataList(ConsumerCardDTO cardData) {
-    final cardInfo = [
-      {
-        'label': 'Main Credit',
-        'value': cardData.mainCredit?.toString() ?? 'N/A',
-      },
-      {
-        'label': 'Reserve Credit',
-        'value': cardData.reserveCredit?.toString() ?? 'N/A',
-      },
-      {
-        'label': 'Critical Credit Limit',
-        'value': cardData.criticalCreditLimit?.toString() ?? 'N/A',
-      },
-      {'label': 'Card ID', 'value': cardData.cardId ?? 'N/A'},
-      {'label': 'Card Number', 'value': cardData.cardNumber ?? 'N/A'},
-      {'label': 'Customer Name', 'value': cardData.customerName ?? 'N/A'},
-      {'label': 'Customer ID', 'value': cardData.customerId ?? 'N/A'},
-      {'label': 'Card Status', 'value': cardData.cardStatus ?? 'N/A'},
-      {
-        'label': 'Last Transaction',
-        'value': cardData.lastTransactionDate?.toString() ?? 'N/A',
-      },
-    ];
+    print('📋 Building card data list for: ${cardData.toString()}');
+
+    final cardInfo = _buildSafeCardInfoList(cardData);
 
     return ListView.builder(
       itemCount: cardInfo.length,
@@ -320,14 +308,81 @@ class _ReadCardScreenState extends State<ReadCardScreen>
               item['label']!,
               style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
             ),
-            trailing: Text(
-              item['value']!,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            trailing: Container(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.4,
+              ),
+              child: Text(
+                item['value']!,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.end,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+              ),
             ),
           ),
         );
       },
     );
+  }
+
+  List<Map<String, String>> _buildSafeCardInfoList(ConsumerCardDTO cardData) {
+    try {
+      return [
+        {'label': 'Card Serial No', 'value': _formatValue(cardData.cardSeriNo)},
+        {
+          'label': 'Main Credit',
+          'value': _formatValue(cardData.mainCredit?.toString()),
+        },
+        {
+          'label': 'Reserve Credit',
+          'value': _formatValue(cardData.reserveCredit?.toString()),
+        },
+        {
+          'label': 'Critical Credit Limit',
+          'value': _formatValue(cardData.criticalCreditLimit?.toString()),
+        },
+        {'label': 'Card ID', 'value': _formatValue(cardData.cardId)},
+        {'label': 'Card Number', 'value': _formatValue(cardData.cardNumber)},
+        {
+          'label': 'Customer Name',
+          'value': _formatValue(cardData.customerName),
+        },
+        {'label': 'Customer ID', 'value': _formatValue(cardData.customerId)},
+        {'label': 'Card Status', 'value': _formatValue(cardData.cardStatus)},
+        {
+          'label': 'Last Transaction',
+          'value': _formatDateTime(cardData.lastTransactionDate),
+        },
+      ];
+    } catch (e) {
+      print('❌ Error building card info list: $e');
+      return [
+        {'label': 'Error', 'value': 'Could not load card data'},
+      ];
+    }
+  }
+
+  String _formatValue(String? value) {
+    if (value == null || value.isEmpty) return 'N/A';
+    // Çok uzun değerleri kısalt
+    if (value.length > 50) {
+      return '${value.substring(0, 47)}...';
+    }
+    return value;
+  }
+
+  String _formatDateTime(DateTime? dateTime) {
+    if (dateTime == null) return 'N/A';
+    try {
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      print('⚠️ Error formatting DateTime: $e');
+      return dateTime.toString();
+    }
   }
 
   Widget _buildEmptyState() {

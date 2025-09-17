@@ -20,6 +20,8 @@ import com.bubuapps.baylancardcreditlibrary.Model.DTO.ReadCardRequest
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.UUID
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
     private val METHOD_CHANNEL = "com.example.kaski_nfc_app/methods"
@@ -86,7 +88,7 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
                     Handler(Looper.getMainLooper()).post {
                         result.success(mapOf(
                             "resultCode" to licenseResult.ResultCode.name,
-                            "message" to licenseResult.Message
+                            "message" to (licenseResult.Message ?: "")
                         ))
                     }
                 }
@@ -168,28 +170,60 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
         }
     }
 
-    private fun sendEvent(eventData: Map<String, Any>) {
+    private fun sendEvent(eventData: Map<String, Any?>) {
         Handler(Looper.getMainLooper()).post {
             try {
-                // Debug: Event data'yı kontrol et
                 println("📤 Sending event: ${eventData["type"]}")
+                
+                // Sadece primitive type'lardan oluşan safe event data oluştur
+                val safeEventData = mutableMapOf<String, Any?>()
                 eventData.forEach { (key, value) ->
-                    println("🔑 $key: $value (${value?.javaClass?.simpleName})")
+                    when (value) {
+                        is String, is Int, is Double, is Boolean, is Long, is Float -> {
+                            safeEventData[key] = value
+                        }
+                        null -> {
+                            safeEventData[key] = null
+                        }
+                        is Map<*, *> -> {
+                            // Map'i de safe hale getir
+                            val safeMap = mutableMapOf<String, Any?>()
+                            value.forEach { (k, v) ->
+                                if (k is String) {
+                                    when (v) {
+                                        is String, is Int, is Double, is Boolean, is Long, is Float -> {
+                                            safeMap[k] = v
+                                        }
+                                        null -> {
+                                            safeMap[k] = null
+                                        }
+                                        else -> {
+                                            safeMap[k] = v.toString()
+                                        }
+                                    }
+                                }
+                            }
+                            safeEventData[key] = safeMap
+                        }
+                        else -> {
+                            safeEventData[key] = value.toString()
+                        }
+                    }
                 }
                 
-                eventSink?.success(eventData)
+                eventSink?.success(safeEventData)
+                
             } catch (e: Exception) {
                 println("❌ Error sending event: $e")
-                // Hata durumunda sadece basit veri gönder
-                val safeEventData = mapOf(
-                    "type" to eventData["type"],
-                    "code" to eventData["code"],
-                    "message" to "Error occurred: ${e.message}"
+                // En basit hata mesajı gönder
+                val errorEventData = mapOf(
+                    "type" to "error",
+                    "message" to "Event sending error: ${e.message}"
                 )
                 try {
-                    eventSink?.success(safeEventData)
+                    eventSink?.success(errorEventData)
                 } catch (e2: Exception) {
-                    println("❌ Failed to send safe event: $e2")
+                    println("❌ Failed to send error event: $e2")
                 }
             }
         }
@@ -206,76 +240,107 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
     override fun ReadCardResult(consumerCardDTO: ConsumerCardDTO?, code: ResultCode) {
         println("🔍 ReadCardResult called - Code: $code, DTO is null: ${consumerCardDTO == null}")
         
-        val cardDataMap = mutableMapOf<String, Any?>()
-        
         if (consumerCardDTO != null && code == ResultCode.Success) {
-            // Reflection ile tüm field'ları oku ama complex object'leri String'e çevir
-            try {
-                val fields = consumerCardDTO::class.java.declaredFields
-                for (field in fields) {
-                    field.isAccessible = true
-                    val fieldName = field.name
-                    val value = field.get(consumerCardDTO)
-                    
-                    // Complex object'leri String'e çevir
-                    val processedValue = when {
-                        value == null -> null
-                        value is String -> value
-                        value is Number -> value
-                        value is Boolean -> value
-                        value.javaClass.isEnum -> value.toString() // Enum'ları String'e çevir
-                        value.javaClass.name.contains("CardStatus") -> value.toString() // CardStatus object'ini String'e çevir
-                        value.javaClass.name.contains("Date") -> value.toString() // Date object'ini String'e çevir
-                        else -> {
-                            // Diğer complex object'ler için toString() kullan
-                            try {
-                                value.toString()
-                            } catch (e: Exception) {
-                                "Unknown"
-                            }
-                        }
-                    }
-                    
-                    cardDataMap[fieldName] = processedValue
-                }
-                
-                // Debug log - hangi field'lar geldi?
-                println("🔍 Card data fields: ${cardDataMap.keys}")
-                cardDataMap.forEach { (key, value) -> 
-                    println("📊 $key: $value (${value?.javaClass?.simpleName})")
-                }
-                
-            } catch (e: Exception) {
-                println("❌ Reflection error: $e")
-                // Fallback: Manuel field mapping
-                cardDataMap["mainCredit"] = consumerCardDTO.mainCredit
-                cardDataMap["reserveCredit"] = consumerCardDTO.reserveCredit  
-                cardDataMap["criticalCreditLimit"] = consumerCardDTO.criticalCreditLimit
-                // Diğer field'ları da manuel olarak ekleyelim
-                try {
-                    // Field'ları manuel olarak kontrol et
-                    cardDataMap["cardId"] = safeFieldAccess(consumerCardDTO, "cardId")
-                    cardDataMap["cardNumber"] = safeFieldAccess(consumerCardDTO, "cardNumber")
-                    cardDataMap["customerName"] = safeFieldAccess(consumerCardDTO, "customerName")
-                    cardDataMap["customerId"] = safeFieldAccess(consumerCardDTO, "customerId")
-                    cardDataMap["cardStatus"] = safeFieldAccess(consumerCardDTO, "cardStatus")
-                    cardDataMap["lastTransactionDate"] = safeFieldAccess(consumerCardDTO, "lastTransactionDate")
-                } catch (e2: Exception) {
-                    println("❌ Manual field access error: $e2")
-                }
-            }
-        } else if (code != ResultCode.Success) {
-            println("⚠️ Card read not successful. Code: $code")
+            // Sadece primitive değerleri içeren safe bir map oluştur
+            val safeCardData = convertConsumerCardDTOToSafeMap(consumerCardDTO)
+            
+            sendEvent(mapOf(
+                "type" to "readCardResult",
+                "code" to code.name,
+                "cardData" to safeCardData
+            ))
+        } else {
+            sendEvent(mapOf(
+                "type" to "readCardResult",
+                "code" to code.name,
+                "cardData" to emptyMap<String, Any>()
+            ))
         }
-        
-        sendEvent(mapOf(
-            "type" to "readCardResult",
-            "code" to code.name,
-            "cardData" to cardDataMap
-        ))
     }
     
-    private fun safeFieldAccess(obj: Any, fieldName: String): String? {
+    private fun convertConsumerCardDTOToSafeMap(dto: ConsumerCardDTO): Map<String, Any?> {
+        val safeMap = mutableMapOf<String, Any?>()
+        
+        try {
+            // Reflection ile field'ları oku
+            val fields = dto::class.java.declaredFields
+            for (field in fields) {
+                field.isAccessible = true
+                val fieldName = field.name
+                val value = field.get(dto)
+                
+                safeMap[fieldName] = when {
+                    value == null -> null
+                    value is String -> value
+                    value is Int -> value
+                    value is Double -> value
+                    value is Float -> value.toDouble()
+                    value is Long -> value
+                    value is Boolean -> value
+                    value.javaClass.isEnum -> value.toString()
+                    value.javaClass.name.contains("Date") -> {
+                        // Date object'ini ISO string'e çevir
+                        try {
+                            val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                            when {
+                                value.toString().isNotEmpty() -> value.toString()
+                                else -> null
+                            }
+                        } catch (e: Exception) {
+                            value.toString()
+                        }
+                    }
+                    else -> {
+                        // Diğer complex object'ler için toString() kullan
+                        try {
+                            value.toString()
+                        } catch (e: Exception) {
+                            "Unknown"
+                        }
+                    }
+                }
+            }
+            
+            println("🔍 Safe card data created with ${safeMap.size} fields")
+            
+        } catch (e: Exception) {
+            println("❌ Error converting DTO: $e")
+            // Fallback: Manuel field mapping
+            safeMap["mainCredit"] = safeGetDoubleValue(dto, "mainCredit")
+            safeMap["reserveCredit"] = safeGetDoubleValue(dto, "reserveCredit")
+            safeMap["criticalCreditLimit"] = safeGetDoubleValue(dto, "criticalCreditLimit")
+            safeMap["cardId"] = safeGetStringValue(dto, "cardId")
+            safeMap["cardNumber"] = safeGetStringValue(dto, "cardNumber")
+            safeMap["cardSeriNo"] = safeGetStringValue(dto, "cardSeriNo")
+            safeMap["customerName"] = safeGetStringValue(dto, "customerName")
+            safeMap["customerId"] = safeGetStringValue(dto, "customerId")
+            safeMap["cardStatus"] = safeGetStringValue(dto, "cardStatus")
+            safeMap["lastTransactionDate"] = safeGetStringValue(dto, "lastTransactionDate")
+        }
+        
+        return safeMap
+    }
+    
+    private fun safeGetDoubleValue(obj: Any, fieldName: String): Double? {
+        return try {
+            val field = obj.javaClass.getDeclaredField(fieldName)
+            field.isAccessible = true
+            val value = field.get(obj)
+            when (value) {
+                is Double -> value
+                is Float -> value.toDouble()
+                is Int -> value.toDouble()
+                is Long -> value.toDouble()
+                is String -> value.toDoubleOrNull()
+                else -> null
+            }
+        } catch (e: Exception) {
+            println("⚠️ Could not get double value for field $fieldName: $e")
+            null
+        }
+    }
+    
+    private fun safeGetStringValue(obj: Any, fieldName: String): String? {
         return try {
             val field = obj.javaClass.getDeclaredField(fieldName)
             field.isAccessible = true
@@ -283,12 +348,11 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
             when {
                 value == null -> null
                 value is String -> value
-                value is Number -> value.toString()
                 value.javaClass.isEnum -> value.toString()
                 else -> value.toString()
             }
         } catch (e: Exception) {
-            println("⚠️ Could not access field $fieldName: $e")
+            println("⚠️ Could not get string value for field $fieldName: $e")
             null
         }
     }
