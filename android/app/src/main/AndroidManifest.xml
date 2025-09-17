@@ -3,7 +3,8 @@
     
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.NFC" />
-    <uses-feature android:name="android.hardware.nfc" android:required="true" />
+    <!-- NFC required değil, opsiyonel yaptık -->
+    <uses-feature android:name="android.hardware.nfc" android:required="false" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.INTERNET" />
     
@@ -27,26 +28,34 @@
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
-                
+            
+            <!-- SADECE normal launcher intent - otomatik açılma YOK -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             
-            <!-- NFC Intent Filter -->
+            <!-- 
+            NFC INTENT FILTER'I KALDIRILDI!
+            
+            Bu kısım kaldırıldı:
             <intent-filter>
                 <action android:name="android.nfc.action.TECH_DISCOVERED"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
             <meta-data android:name="android.nfc.action.TECH_DISCOVERED"
                 android:resource="@xml/nfc_tech_filter" />
-                
+            
+            SONUÇ: Artık NFC kartı yaklaştırınca uygulama otomatik açılmayacak!
+            Sadece kullanıcı manuel olarak uygulamayı açınca NFC çalışacak.
+            -->
+            
         </activity>
         
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-            
+        
     </application>
     
     <queries>
@@ -55,4 +64,5 @@
             <data android:mimeType="text/plain"/>
         </intent>
     </queries>
+    
 </manifest>

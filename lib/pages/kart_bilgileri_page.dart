@@ -39,6 +39,17 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
   }
 
   @override
+  void initState() {
+    _kartNumarasiController.text = "4233444433330000";
+    _isimController.text = "Tolga";
+    _sonKullanmaController.text = "12/3021";
+    _cvvController.text = "333";
+    final FocusNode _cvvFocus = FocusNode();
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
