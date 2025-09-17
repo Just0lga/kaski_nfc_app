@@ -17,6 +17,12 @@ class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
   double tonMiktari = 0.0;
   double tutar = 0.0;
   final TextEditingController _controller = TextEditingController();
+  @override
+  void initState() {
+    print("xxx MiktarGirisiPage");
+    // TODO: implement initState
+    super.initState();
+  }
 
   bool isKeyboardVisible(BuildContext context) {
     return MediaQuery.of(context).viewInsets.bottom > 0;

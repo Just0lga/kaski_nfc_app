@@ -40,6 +40,8 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
 
   @override
   void initState() {
+    print("xxx KartBilgileriPage");
+
     _kartNumarasiController.text = "4233444433330000";
     _isimController.text = "Tolga";
     _sonKullanmaController.text = "12/3021";

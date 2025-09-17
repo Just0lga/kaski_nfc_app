@@ -17,7 +17,7 @@ class _StartPageState extends State<StartPage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-
+    print("xxx StartPage");
     // Animasyon kontrolcüsü
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1500),

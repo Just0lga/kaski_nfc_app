@@ -21,6 +21,7 @@ class OdemeKontroluPage extends StatefulWidget {
 class _OdemeKontroluPageState extends State<OdemeKontroluPage> {
   @override
   void initState() {
+    print("xxx OdemeKontroluPage");
     super.initState();
     // Ödeme işlemi simülasyonu - 2 saniye sonra karta yükleme sayfasına geç
     Future.delayed(const Duration(seconds: 2), () {

@@ -23,34 +23,28 @@ class KartaYukleme extends StatefulWidget {
   State<KartaYukleme> createState() => _KartaYuklemeState();
 }
 
-class _KartaYuklemeState extends State<KartaYukleme>
-    with TickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _pulseAnimation;
+class _KartaYuklemeState extends State<KartaYukleme> {
   bool _writeStarted = false;
+  bool _writeCompleted = false;
+  bool _isNavigating = false; // Navigation guard
 
   @override
   void initState() {
     super.initState();
+    print("xxx KartaYukleme initState");
 
-    // Animasyon kontrolcüsü
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.1).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-    _animationController.repeat(reverse: true);
-
-    // NFC yazma işlemini başlat
+    // NFC yazma işlemini başlat - 1 saniye gecikme ile
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _startCardWriting();
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) {
+          _startCardWriting();
+        }
+      });
     });
   }
 
   void _startCardWriting() {
-    if (!_writeStarted) {
+    if (!_writeStarted && mounted) {
       _writeStarted = true;
       final nfcProvider = Provider.of<NFCProvider>(context, listen: false);
 
@@ -78,6 +72,26 @@ class _KartaYuklemeState extends State<KartaYukleme>
 
       // Yazma işlemini başlat
       nfcProvider.writeCard(creditRequest);
+    }
+  }
+
+  void _navigateToResult() {
+    if (!_isNavigating && mounted) {
+      _isNavigating = true;
+      print('🔄 Navigating to result page...');
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SonucPage(
+            cardData: widget.cardData,
+            yuklenenMiktar: widget.tonMiktari,
+            tutar: widget.tutar,
+            yeniToplamBakiye:
+                (widget.cardData.mainCredit ?? 0.0) + widget.tutar,
+          ),
+        ),
+      );
     }
   }
 
@@ -113,236 +127,272 @@ class _KartaYuklemeState extends State<KartaYukleme>
       ),
       body: Consumer<NFCProvider>(
         builder: (context, nfcProvider, child) {
-          // Yazma işlemi başarılı olduğunda sonuç sayfasına geç
+          // Write işlemi tamamlandığında
           if (!nfcProvider.isLoading &&
-              nfcProvider.message.contains('success')) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SonucPage(
-                      cardData: widget.cardData,
-                      yuklenenMiktar: widget.tonMiktari,
-                      tutar: widget.tutar,
-                      yeniToplamBakiye:
-                          (widget.cardData.mainCredit ?? 0.0) + widget.tutar,
-                    ),
-                  ),
-                );
-              }
+              nfcProvider.message.contains('success') &&
+              !_writeCompleted) {
+            _writeCompleted = true;
+            print('✅ Write completed, waiting before navigation...');
+
+            // 2 saniye bekle sonra sonuç sayfasına geç
+            Future.delayed(const Duration(seconds: 2), () {
+              _navigateToResult();
             });
           }
 
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Animasyonlu NFC ikonu
-                AnimatedBuilder(
-                  animation: _pulseAnimation,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: _pulseAnimation.value,
-                      child: CircleAvatar(
-                        backgroundColor: const Color.fromRGBO(
-                          235,
-                          254,
-                          254,
-                          1.0,
-                        ),
-                        radius: width * 0.2,
-                        child: Icon(
-                          Icons.nfc,
-                          size: height * 0.11,
-                          color: const Color.fromRGBO(68, 95, 116, 1),
-                        ),
+          return SafeArea(
+            child: SingleChildScrollView(
+              child: Container(
+                height: MediaQuery.of(context).size.height - 100,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // NFC ikonu
+                    CircleAvatar(
+                      backgroundColor: const Color.fromRGBO(235, 254, 254, 1.0),
+                      radius: width * 0.2,
+                      child: Icon(
+                        Icons.nfc,
+                        size: height * 0.11,
+                        color: const Color.fromRGBO(68, 95, 116, 1),
                       ),
-                    );
-                  },
-                ),
-
-                SizedBox(height: height * 0.04),
-
-                // Ana mesaj
-                Text(
-                  nfcProvider.isLoading
-                      ? "Kartınızı telefonunuza yaklaştırın"
-                      : "Kart yazma işlemi tamamlanıyor...",
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color.fromRGBO(235, 254, 254, 1.0),
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-
-                SizedBox(height: height * 0.04),
-
-                // Progress bar
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: width * 0.15),
-                  child: const LinearProgressIndicator(
-                    backgroundColor: Color.fromRGBO(68, 95, 116, 1),
-                    color: Color.fromRGBO(235, 254, 254, 1.0),
-                  ),
-                ),
-
-                SizedBox(height: height * 0.02),
-
-                // Durum metni
-                Text(
-                  nfcProvider.isLoading
-                      ? "Su yükleniyor..."
-                      : "İşlem tamamlanıyor...",
-                  style: const TextStyle(
-                    color: Color.fromRGBO(235, 254, 254, 1.0),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-
-                SizedBox(height: height * 0.04),
-
-                // İşlem detayları
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: width * 0.1),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withOpacity(0.2)),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Yüklenecek:",
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            "${widget.tonMiktari} ton",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Tutar:",
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            "${widget.tutar.toStringAsFixed(0)} TL",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                SizedBox(height: height * 0.02),
-
-                // Hata mesajı varsa göster
-                if (nfcProvider.message.isNotEmpty &&
-                    !nfcProvider.message.contains('success') &&
-                    !nfcProvider.message.contains('Writing') &&
-                    !nfcProvider.message.contains('writing'))
-                  Container(
-                    margin: EdgeInsets.symmetric(horizontal: width * 0.1),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.red.withOpacity(0.3)),
                     ),
-                    child: Column(
-                      children: [
-                        Text(
-                          "Yazma Hatası: ${nfcProvider.message}",
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
-                          textAlign: TextAlign.center,
+
+                    SizedBox(height: height * 0.04),
+
+                    // Ana mesaj - duruma göre değişen
+                    Text(
+                      _getStatusMessage(nfcProvider),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color.fromRGBO(235, 254, 254, 1.0),
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    SizedBox(height: height * 0.04),
+
+                    // Progress bar
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: width * 0.15),
+                      child: LinearProgressIndicator(
+                        backgroundColor: const Color.fromRGBO(68, 95, 116, 1),
+                        color: const Color.fromRGBO(235, 254, 254, 1.0),
+                        value: _getProgressValue(),
+                      ),
+                    ),
+
+                    SizedBox(height: height * 0.02),
+
+                    // Durum metni
+                    Text(
+                      _getSubStatusMessage(nfcProvider),
+                      style: const TextStyle(
+                        color: Color.fromRGBO(235, 254, 254, 1.0),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+
+                    SizedBox(height: height * 0.04),
+
+                    // İşlem detayları
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: width * 0.1),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
                         ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            ElevatedButton(
-                              onPressed: () {
-                                _writeStarted = false;
-                                nfcProvider.clearMessage();
-                                _startCardWriting();
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: const Color.fromRGBO(
-                                  163,
-                                  221,
-                                  253,
-                                  1,
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Yüklenecek:",
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 16,
                                 ),
                               ),
-                              child: const Text("Tekrar Dene"),
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                // Test için simüle edilmiş başarı mesajı gönder
-                                nfcProvider.clearMessage();
-                                // Başarılı sonuca geç
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => SonucPage(
-                                      cardData: widget.cardData,
-                                      yuklenenMiktar: widget.tonMiktari,
-                                      tutar: widget.tutar,
-                                      yeniToplamBakiye:
-                                          (widget.cardData.mainCredit ?? 0.0) +
-                                          widget.tutar,
+                              Text(
+                                "${widget.tonMiktari} ton",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Tutar:",
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              Text(
+                                "${widget.tutar.toStringAsFixed(0)} TL",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          // Write tamamlandıysa başarı mesajı göster
+                          if (_writeCompleted) ...[
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.green.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    "Yükleme Başarılı!",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
+                                ],
                               ),
-                              child: const Text("Sim. Başarı"),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: height * 0.02),
+
+                    // Hata mesajı varsa göster
+                    if (nfcProvider.message.isNotEmpty &&
+                        !nfcProvider.message.contains('success') &&
+                        !nfcProvider.message.contains('Writing') &&
+                        !nfcProvider.message.contains('writing') &&
+                        !nfcProvider.message.contains('card...'))
+                      Container(
+                        margin: EdgeInsets.symmetric(horizontal: width * 0.1),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.red.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              "Yazma Hatası: ${nfcProvider.message}",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    _writeStarted = false;
+                                    _writeCompleted = false;
+                                    nfcProvider.clearMessage();
+                                    _startCardWriting();
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: const Color.fromRGBO(
+                                      163,
+                                      221,
+                                      253,
+                                      1,
+                                    ),
+                                  ),
+                                  child: const Text("Tekrar Dene"),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    _navigateToResult();
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: const Text("Geç"),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
 
-                SizedBox(height: height * 0.1),
-              ],
+                    SizedBox(height: height * 0.05),
+                  ],
+                ),
+              ),
             ),
           );
         },
       ),
     );
+  }
+
+  String _getStatusMessage(NFCProvider nfcProvider) {
+    if (!_writeStarted) {
+      return "Hazırlanıyor...";
+    } else if (nfcProvider.isLoading) {
+      return "Kartınızı telefonunuza yaklaştırın";
+    } else if (_writeCompleted) {
+      return "Yükleme Tamamlandı!";
+    } else {
+      return "Kart yazma işlemi tamamlanıyor...";
+    }
+  }
+
+  String _getSubStatusMessage(NFCProvider nfcProvider) {
+    if (!_writeStarted) {
+      return "İşlem başlatılıyor...";
+    } else if (nfcProvider.isLoading) {
+      return "Su yükleniyor...";
+    } else if (_writeCompleted) {
+      return "Sonuçlar hazırlanıyor...";
+    } else {
+      return "İşlem tamamlanıyor...";
+    }
+  }
+
+  double? _getProgressValue() {
+    if (!_writeStarted) {
+      return 0.2;
+    } else if (_writeCompleted) {
+      return 1.0;
+    } else {
+      return 0.6; // Sabit progress value
+    }
   }
 }

@@ -15,6 +15,13 @@ class AboneBilgileriPage extends StatefulWidget {
 
 class _AboneBilgileriPageState extends State<AboneBilgileriPage> {
   @override
+  void initState() {
+    print("xxx AboneBilgileriPage");
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;

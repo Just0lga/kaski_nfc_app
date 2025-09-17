@@ -19,6 +19,7 @@ class SonucPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("xxx SonucPage");
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
 
