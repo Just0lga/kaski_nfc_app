@@ -2,9 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kaski_nfc_app/pages/odeme_kontrolu_page.dart';
 import 'package:kaski_nfc_app/widgets/custom_button.dart';
+import '../models/consumer_card_dto.dart';
 
 class KartBilgileriPage extends StatefulWidget {
-  const KartBilgileriPage({super.key});
+  final ConsumerCardDTO cardData;
+  final double tonMiktari;
+  final double tutar;
+
+  const KartBilgileriPage({
+    super.key,
+    required this.cardData,
+    required this.tonMiktari,
+    required this.tutar,
+  });
 
   @override
   State<KartBilgileriPage> createState() => _KartBilgileriPageState();
@@ -33,12 +43,12 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
     final keyboardOpen = isKeyboardVisible(context);
-    final borderColor = Color.fromRGBO(96, 190, 244, 1.0);
+    const borderColor = Color.fromRGBO(96, 190, 244, 1.0);
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           "Kart Bilgileri",
           style: TextStyle(
             fontWeight: FontWeight.bold,
@@ -49,12 +59,66 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: width * 0.08),
         child: Column(
           children: [
+            // Ödeme özeti kartı
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text("Miktar:", style: TextStyle(fontSize: 16)),
+                      Text(
+                        "${widget.tonMiktari} ton",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Ödenecek Tutar:",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        "${widget.tutar.toStringAsFixed(0)} TL",
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: borderColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
             Expanded(
               child: Form(
                 key: _formKey,
@@ -65,7 +129,7 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
                     TextFormField(
                       controller: _kartNumarasiController,
                       focusNode: _kartFocus,
-                      cursorColor: borderColor, // imleç rengi
+                      cursorColor: borderColor,
                       keyboardType: TextInputType.number,
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
@@ -73,16 +137,19 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
                       ],
                       decoration: InputDecoration(
                         labelText: "Kart Numarası",
-                        labelStyle: TextStyle(color: Colors.black),
+                        labelStyle: const TextStyle(color: Colors.black),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: borderColor),
+                          borderSide: const BorderSide(color: borderColor),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: borderColor, width: 2),
+                          borderSide: const BorderSide(
+                            color: borderColor,
+                            width: 2,
+                          ),
                         ),
-                        prefixIcon: Icon(
+                        prefixIcon: const Icon(
                           Icons.credit_card,
                           color: Colors.black,
                         ),
@@ -110,19 +177,22 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
                       keyboardType: TextInputType.name,
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
-                          RegExp(r'[a-zA-Z\s]'),
+                          RegExp(r'[a-zA-ZçÇğĞıİöÖşŞüÜ\s]'),
                         ),
                       ],
                       decoration: InputDecoration(
                         labelText: "Kart Sahibinin Adı",
-                        labelStyle: TextStyle(color: Colors.black),
+                        labelStyle: const TextStyle(color: Colors.black),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: borderColor),
+                          borderSide: const BorderSide(color: borderColor),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: borderColor, width: 2),
+                          borderSide: const BorderSide(
+                            color: borderColor,
+                            width: 2,
+                          ),
                         ),
                       ),
                       textInputAction: TextInputAction.next,
@@ -151,22 +221,21 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
                               FilteringTextInputFormatter.allow(
                                 RegExp(r'\d|/'),
                               ),
-                              LengthLimitingTextInputFormatter(
-                                7,
-                              ), // 2/4 formatında toplam 7 karakter
+                              LengthLimitingTextInputFormatter(7),
                               _ExpiryDateTextInputFormatter(),
                             ],
                             decoration: InputDecoration(
                               labelText: "MM/YYYY",
-                              labelStyle: TextStyle(color: Colors.black),
-
+                              labelStyle: const TextStyle(color: Colors.black),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: borderColor),
+                                borderSide: const BorderSide(
+                                  color: borderColor,
+                                ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
+                                borderSide: const BorderSide(
                                   color: borderColor,
                                   width: 2,
                                 ),
@@ -198,14 +267,16 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
                             ],
                             decoration: InputDecoration(
                               labelText: "CVV",
-                              labelStyle: TextStyle(color: Colors.black),
+                              labelStyle: const TextStyle(color: Colors.black),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: borderColor),
+                                borderSide: const BorderSide(
+                                  color: borderColor,
+                                ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
+                                borderSide: const BorderSide(
                                   color: borderColor,
                                   width: 2,
                                 ),
@@ -228,7 +299,7 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
               ),
             ),
             keyboardOpen
-                ? SizedBox()
+                ? const SizedBox()
                 : CustomButton(
                     buttonText: "Ödeme Yap",
                     buttonColor: borderColor,
@@ -237,7 +308,11 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => OdemeKontroluPage(),
+                            builder: (context) => OdemeKontroluPage(
+                              cardData: widget.cardData,
+                              tonMiktari: widget.tonMiktari,
+                              tutar: widget.tutar,
+                            ),
                           ),
                         );
                       }
@@ -260,8 +335,9 @@ class _ExpiryDateTextInputFormatter extends TextInputFormatter {
     String text = newValue.text;
 
     // Eğer kullanıcı silerse direkt geri dön
-    if (newValue.selection.baseOffset < oldValue.selection.baseOffset)
+    if (newValue.selection.baseOffset < oldValue.selection.baseOffset) {
       return newValue;
+    }
 
     // '/' karakteri ekle
     if (text.length == 2 && !text.contains('/')) {
