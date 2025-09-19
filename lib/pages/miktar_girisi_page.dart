@@ -14,8 +14,8 @@ class MiktarGirisiPage extends StatefulWidget {
 }
 
 class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
-  double tonMiktari = 0.0;
-  double tutar = 0.0;
+  double tonMiktari = 10.0;
+  double tutar = 100.0;
   final TextEditingController _controller = TextEditingController();
   @override
   void initState() {
