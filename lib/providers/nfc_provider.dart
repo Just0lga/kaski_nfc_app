@@ -20,6 +20,10 @@ class NFCProvider extends ChangeNotifier {
   DateTime? _lastWriteStartTime;
   String _debugLog = '';
 
+  // Write durumu takibi için
+  bool _isWriteInProgress = false;
+  bool _writeCompleted = false;
+
   bool get isLoading => _isLoading;
   String get message => _message;
   ConsumerCardDTO? get cardData => _cardData;
@@ -27,11 +31,14 @@ class NFCProvider extends ChangeNotifier {
   String get licenseStatus => _licenseStatus;
   String get debugLog => _debugLog;
   String get lastWriteRequestId => _lastWriteRequestId;
+  bool get isWriteInProgress => _isWriteInProgress;
+  bool get writeCompleted => _writeCompleted;
 
   final _uuid = const Uuid();
 
   // Constructor - NFC başlatır ve event listenerı kurar
   NFCProvider() {
+    print('🏁 NFCProvider constructor called');
     _initializeNFC();
     _listenToNFCEvents();
   }
@@ -52,7 +59,7 @@ class NFCProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Tüm debug loglarını temziler
+  // Tüm debug loglarını temizler
   void clearDebugLog() {
     _debugLog = '';
     notifyListeners();
@@ -73,7 +80,7 @@ class NFCProvider extends ChangeNotifier {
     }
   }
 
-  // Androidden gelen NFC eventlerini dinleyen streami başlatır
+  // Android'den gelen NFC eventlerini dinleyen stream'i başlatır
   // Sürekli çalışır ve gelen eventleri _handleNFCEvent'e yönlendirir
   void _listenToNFCEvents() {
     _addDebugLog('Starting NFC event listener');
@@ -85,6 +92,7 @@ class NFCProvider extends ChangeNotifier {
         _message = 'NFC Event Error: $error';
         _addDebugLog('NFC Event Error: $error');
         _isLoading = false;
+        _isWriteInProgress = false;
         notifyListeners();
       },
     );
@@ -126,6 +134,7 @@ class NFCProvider extends ChangeNotifier {
       _addDebugLog('Error handling event: $e');
       _message = 'Error processing NFC event: $e';
       _isLoading = false;
+      _isWriteInProgress = false;
       notifyListeners();
     }
   }
@@ -211,6 +220,7 @@ class NFCProvider extends ChangeNotifier {
   // İşlem süresini hesaplar ve sonuca göre mesaj günceller
   void _handleWriteCardResult(Map<String, dynamic> eventData) {
     _isLoading = false;
+    _isWriteInProgress = false;
     final String? resultCode = eventData['code'];
 
     // Write işleminin ne kadar sürdüğünü hesapla
@@ -225,8 +235,20 @@ class NFCProvider extends ChangeNotifier {
 
     if (resultCode == 'Success') {
       _message = 'Card written successfully';
+      _writeCompleted = true;
       _addDebugLog('✅ WRITE SUCCESSFUL - Card was actually updated!');
       print('✅ Card write successful');
+
+      // Write başarılı olduğunda kart verisini tekrar oku (opsiyonel)
+      Future.delayed(Duration(milliseconds: 1000), () {
+        if (_cardData != null) {
+          readCard();
+        }
+      });
+    } else if (resultCode == 'ReadCardAgain') {
+      _message = 'Please place the card again and retry';
+      _addDebugLog('⚠️ Need to read card again');
+      print('⚠️ Card write requires card to be read again: $resultCode');
     } else {
       _message = _getErrorMessage(resultCode);
       _addDebugLog('❌ WRITE FAILED: $resultCode');
@@ -241,9 +263,10 @@ class NFCProvider extends ChangeNotifier {
   }
 
   // Genel hata mesajlarını işler
-  // Bilinmeyen  hatalar veya sistem hataları için kullanılır
+  // Bilinmeyen hatalar veya sistem hataları için kullanılır
   void _handleError(Map<String, dynamic> eventData) {
     _isLoading = false;
+    _isWriteInProgress = false;
     final String? errorMessage = eventData['message'];
     _message = errorMessage ?? 'Unknown error occurred';
     _addDebugLog('Error event: $_message');
@@ -253,7 +276,6 @@ class NFCProvider extends ChangeNotifier {
 
   // Çeşitli data tiplerini güvenli bir şekilde Map<String, dynamic>'e dönüştürür
   // Complex objectleri JSON serialize için hazırlar
-  // Bunun sebebi kotlin-flutter tarafındaki verilerin uyuşmasılığı, event channel ve method channel kuralları sebebiyle
   Map<String, dynamic> _safeConvertToMap(dynamic data) {
     if (data is Map<String, dynamic>) {
       return data;
@@ -290,12 +312,15 @@ class NFCProvider extends ChangeNotifier {
       return value.map(_safeConvertValue).toList();
     } else {
       // Diğer türler için string'e çevir
-      return value.toString();
+      try {
+        return value.toString();
+      } catch (e) {
+        return "Unknown";
+      }
     }
   }
 
   // Baylan result codelarını kullanıcı dostu mesajlara çevirir
-  // Hata kodlarını mesajlara dönüştürü
   String _getErrorMessage(String? resultCode) {
     switch (resultCode) {
       case 'CardNotReadYet':
@@ -367,6 +392,7 @@ class NFCProvider extends ChangeNotifier {
     _isLoading = true;
     _message = 'Reading card...';
     _cardData = null;
+    _writeCompleted = false;
     notifyListeners();
 
     try {
@@ -387,7 +413,9 @@ class NFCProvider extends ChangeNotifier {
   // CreditRequestDTO'yu Android native katmanına gönderir
   Future<void> writeCard(CreditRequestDTO creditRequest) async {
     _isLoading = true;
-    _message = 'Writing card...';
+    _isWriteInProgress = true;
+    _writeCompleted = false;
+    _message = 'Writing to card...';
     _lastWriteStartTime = DateTime.now();
     notifyListeners();
 
@@ -395,31 +423,14 @@ class NFCProvider extends ChangeNotifier {
       creditRequest.requestId = _uuid.v4();
       _lastWriteRequestId = creditRequest.requestId!;
 
-      // CreditRequestDTO'yu Map'e çevir ve enum'ları string'e dönüştür
-      final Map<String, dynamic> requestMap = creditRequest.toJson();
-
-      // OperationType enum'ını string'e çevir
-      if (requestMap['operationType'] != null) {
-        final operationType = creditRequest.operationType;
-        String operationTypeString = '';
-
-        switch (operationType) {
-          case OperationType.none:
-            operationTypeString = 'None';
-            break;
-          case OperationType.addCredit:
-            operationTypeString = 'AddCredit';
-            break;
-          case OperationType.clearCredits:
-            operationTypeString = 'ClearCredits';
-            break;
-          case OperationType.setCredit:
-            operationTypeString = 'SetCredit';
-            break;
-        }
-
-        requestMap['operationType'] = operationTypeString;
-      }
+      // CreditRequestDTO'yu Map'e çevir
+      final Map<String, dynamic> requestMap = {
+        'credit': creditRequest.credit,
+        'reserveCreditLimit': creditRequest.reserveCreditLimit,
+        'criticalCreditLimit': creditRequest.criticalCreditLimit,
+        'operationType': _getOperationTypeString(creditRequest.operationType),
+        'requestId': creditRequest.requestId,
+      };
 
       _addDebugLog('🚀 STARTING WRITE OPERATION');
       _addDebugLog('Request ID: $_lastWriteRequestId');
@@ -433,12 +444,27 @@ class NFCProvider extends ChangeNotifier {
       _addDebugLog('Write command sent to native layer');
     } catch (e) {
       _isLoading = false;
+      _isWriteInProgress = false;
       _message = 'Failed to write card: $e';
       _addDebugLog('❌ Write card failed: $e');
       _lastWriteStartTime = null;
       _lastWriteRequestId = '';
       print('❌ Write card error: $e');
       notifyListeners();
+    }
+  }
+
+  // OperationType'ı string'e çeviren helper metod
+  String _getOperationTypeString(OperationType operationType) {
+    switch (operationType) {
+      case OperationType.none:
+        return 'None';
+      case OperationType.addCredit:
+        return 'AddCredit';
+      case OperationType.clearCredits:
+        return 'ClearCredits';
+      case OperationType.setCredit:
+        return 'SetCredit';
     }
   }
 
@@ -463,6 +489,15 @@ class NFCProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Write durumunu sıfırlar
+  void resetWriteState() {
+    _isWriteInProgress = false;
+    _writeCompleted = false;
+    _lastWriteStartTime = null;
+    _lastWriteRequestId = '';
+    notifyListeners();
+  }
+
   // Write işlemi hakkında detaylı debug bilgilerini döndürür
   // Sorun giderme ve test amaçlı kullanılır
   String getWriteDebugInfo() {
@@ -470,6 +505,8 @@ class NFCProvider extends ChangeNotifier {
     info += 'Last Write Request ID: $_lastWriteRequestId\n';
     info += 'Write Start Time: ${_lastWriteStartTime?.toString() ?? "None"}\n';
     info += 'Current Loading State: $_isLoading\n';
+    info += 'Write In Progress: $_isWriteInProgress\n';
+    info += 'Write Completed: $_writeCompleted\n';
     info += 'Last Message: $_message\n';
     info += 'NFC Enabled: $_isNfcEnabled\n';
     info += 'License Status: $_licenseStatus\n';
