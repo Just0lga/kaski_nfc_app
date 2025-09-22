@@ -77,5 +77,5 @@ dependencies {
     implementation "androidx.security:security-crypto:1.1.0-alpha01"
 
     // Baylan Card Library - Doğru artifact bilgileri 
-    implementation 'com.baylan:baylan-card-credit-library:kahramanmaras-1.0.9'
+    implementation 'com.baylan:baylan-card-credit-library:kahramanmaras-1.1.1'
 } 

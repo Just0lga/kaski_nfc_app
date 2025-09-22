@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:kaski_nfc_app/widgets/custom_button.dart';
 import 'package:kaski_nfc_app/pages/start_page.dart';
 import '../models/consumer_card_dto.dart';
 

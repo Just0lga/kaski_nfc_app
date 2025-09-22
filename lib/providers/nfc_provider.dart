@@ -30,11 +30,14 @@ class NFCProvider extends ChangeNotifier {
 
   final _uuid = const Uuid();
 
+  // Constructor - NFC başlatır ve event listenerı kurar
   NFCProvider() {
     _initializeNFC();
     _listenToNFCEvents();
   }
 
+  // Debug log mesajlarını zaman ile birlikte kaydeder
+  // Maksimum 50 satır tutarak performansı korur
   void _addDebugLog(String log) {
     final timestamp = DateTime.now().toString().substring(11, 19);
     _debugLog += '[$timestamp] $log\n';
@@ -49,11 +52,14 @@ class NFCProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Tüm debug loglarını temziler
   void clearDebugLog() {
     _debugLog = '';
     notifyListeners();
   }
 
+  // NFC sistemini başlatır ve lisansı kontrol eder
+  // Uygulama başladığında otomatik olarak çalışır
   void _initializeNFC() async {
     try {
       _addDebugLog('NFC initialization started');
@@ -67,6 +73,8 @@ class NFCProvider extends ChangeNotifier {
     }
   }
 
+  // Androidden gelen NFC eventlerini dinleyen streami başlatır
+  // Sürekli çalışır ve gelen eventleri _handleNFCEvent'e yönlendirir
   void _listenToNFCEvents() {
     _addDebugLog('Starting NFC event listener');
     eventChannel.receiveBroadcastStream().listen(
@@ -82,6 +90,8 @@ class NFCProvider extends ChangeNotifier {
     );
   }
 
+  // Gelen NFC eventlerini tip-türüne göre uygun handler metoduna yönlendirir
+  // Event türleri: licenseStatus, onResult, readCardResult, writeCardResult, error
   void _handleNFCEvent(dynamic event) {
     try {
       final Map<String, dynamic> eventData = Map<String, dynamic>.from(event);
@@ -120,6 +130,8 @@ class NFCProvider extends ChangeNotifier {
     }
   }
 
+  // Baylan kütüphanesinden gelen lisans durumu mesajlarını işler
+  // Lisans geçerli-geçersiz durumunu günceller
   void _handleLicenseStatus(Map<String, dynamic> eventData) {
     final String? message = eventData['message'];
     _licenseStatus = message ?? 'Unknown license status';
@@ -128,6 +140,8 @@ class NFCProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Gelen NFC işlem sonuçlarını işler (BAYLAN'ın OnResult callback)
+  // Özellikle kart okundu sinyalini yakalar ve loading durumunu günceller
   void _handleOnResult(Map<String, dynamic> eventData) {
     final String? tag = eventData['tag'];
     final String? resultCode = eventData['code'];
@@ -143,6 +157,8 @@ class NFCProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Kart okuma işleminin sonucunu işler
+  // Başarılıysa kart verilerini ConsumerCardDTO'ya dönüştürür
   void _handleReadCardResult(Map<String, dynamic> eventData) {
     _isLoading = false;
     final String? resultCode = eventData['code'];
@@ -191,6 +207,8 @@ class NFCProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Kart yazma işleminin sonucunu işler
+  // İşlem süresini hesaplar ve sonuca göre mesaj günceller
   void _handleWriteCardResult(Map<String, dynamic> eventData) {
     _isLoading = false;
     final String? resultCode = eventData['code'];
@@ -222,6 +240,8 @@ class NFCProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Genel hata mesajlarını işler
+  // Bilinmeyen  hatalar veya sistem hataları için kullanılır
   void _handleError(Map<String, dynamic> eventData) {
     _isLoading = false;
     final String? errorMessage = eventData['message'];
@@ -231,6 +251,9 @@ class NFCProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Çeşitli data tiplerini güvenli bir şekilde Map<String, dynamic>'e dönüştürür
+  // Complex objectleri JSON serialize için hazırlar
+  // Bunun sebebi kotlin-flutter tarafındaki verilerin uyuşmasılığı, event channel ve method channel kuralları sebebiyle
   Map<String, dynamic> _safeConvertToMap(dynamic data) {
     if (data is Map<String, dynamic>) {
       return data;
@@ -249,6 +272,8 @@ class NFCProvider extends ChangeNotifier {
     }
   }
 
+  // Değerleri güvenli bir şekilde JSON-compatible türlere dönüştürür
+  // Primitive olmayan türleri stringe çevirir
   dynamic _safeConvertValue(dynamic value) {
     if (value == null) {
       return null;
@@ -269,6 +294,8 @@ class NFCProvider extends ChangeNotifier {
     }
   }
 
+  // Baylan result codelarını kullanıcı dostu mesajlara çevirir
+  // Hata kodlarını mesajlara dönüştürü
   String _getErrorMessage(String? resultCode) {
     switch (resultCode) {
       case 'CardNotReadYet':
@@ -284,6 +311,8 @@ class NFCProvider extends ChangeNotifier {
     }
   }
 
+  // Baylan kütüphanesinin lisansını kontrol eder
+  // Sabit license key ile lisans durumunu kontrol eder
   Future<void> _checkLicense() async {
     try {
       final String licenseKey = "9283ebb4-9822-46fa-bbe3-ac4a4d25b8c2";
@@ -308,6 +337,7 @@ class NFCProvider extends ChangeNotifier {
     }
   }
 
+  // Manuel NFC aç-kapa
   Future<void> toggleNFC(bool enable) async {
     try {
       if (enable) {
@@ -331,6 +361,8 @@ class NFCProvider extends ChangeNotifier {
     }
   }
 
+  // NFC kartını okuma işlemini başlatır
+  // Kullanıcı kartı telefona yaklaştırdığında çalışır
   Future<void> readCard() async {
     _isLoading = true;
     _message = 'Reading card...';
@@ -351,6 +383,8 @@ class NFCProvider extends ChangeNotifier {
     }
   }
 
+  // NFC kartına kredi yazma işlemini başlatır
+  // CreditRequestDTO'yu Android native katmanına gönderir
   Future<void> writeCard(CreditRequestDTO creditRequest) async {
     _isLoading = true;
     _message = 'Writing card...';
@@ -408,6 +442,8 @@ class NFCProvider extends ChangeNotifier {
     }
   }
 
+  // Baylan kütüphanesinin server URL'ini ayarlar
+  // Genellikle test/production server geçişi için kullanılır
   Future<void> setUrl(String url) async {
     try {
       _addDebugLog('Setting URL: $url');
@@ -420,12 +456,15 @@ class NFCProvider extends ChangeNotifier {
     }
   }
 
+  // Mevcut hata/durum mesajını temizler
+  // UI'da mesajları sıfırlamak için kullanılır
   void clearMessage() {
     _message = '';
     notifyListeners();
   }
 
-  // Debug bilgileri için yardımcı method
+  // Write işlemi hakkında detaylı debug bilgilerini döndürür
+  // Sorun giderme ve test amaçlı kullanılır
   String getWriteDebugInfo() {
     String info = 'WRITE DEBUG INFO:\n';
     info += 'Last Write Request ID: $_lastWriteRequestId\n';
