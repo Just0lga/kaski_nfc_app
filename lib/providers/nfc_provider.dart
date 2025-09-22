@@ -1,72 +1,94 @@
+// lib/providers/nfc_provider.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/consumer_card_dto.dart';
 import '../models/credit_request_dto.dart';
 import '../models/enums.dart';
 import 'package:uuid/uuid.dart';
 
-class NFCProvider extends ChangeNotifier {
-  static const platform = MethodChannel('com.example.kaski_nfc_app/methods');
-  static const eventChannel = EventChannel('com.example.kaski_nfc_app/events');
+// NFCState sınıfını oluşturalım
+@immutable
+class NFCState {
+  const NFCState({
+    this.isLoading = false,
+    this.message = '',
+    this.cardData,
+    this.isNfcEnabled = false,
+    this.licenseStatus = '',
+    this.debugLog = '',
+    this.lastWriteRequestId = '',
+    this.isWriteInProgress = false,
+    this.writeCompleted = false,
+  });
 
-  bool _isLoading = false;
-  String _message = '';
-  ConsumerCardDTO? _cardData;
-  bool _isNfcEnabled = false;
-  String _licenseStatus = '';
+  final bool isLoading;
+  final String message;
+  final ConsumerCardDTO? cardData;
+  final bool isNfcEnabled;
+  final String licenseStatus;
+  final String debugLog;
+  final String lastWriteRequestId;
+  final bool isWriteInProgress;
+  final bool writeCompleted;
 
-  // Debug bilgileri için yeni propertyler
-  String _lastWriteRequestId = '';
-  DateTime? _lastWriteStartTime;
-  String _debugLog = '';
+  NFCState copyWith({
+    bool? isLoading,
+    String? message,
+    ConsumerCardDTO? cardData,
+    bool? isNfcEnabled,
+    String? licenseStatus,
+    String? debugLog,
+    String? lastWriteRequestId,
+    bool? isWriteInProgress,
+    bool? writeCompleted,
+  }) {
+    return NFCState(
+      isLoading: isLoading ?? this.isLoading,
+      message: message ?? this.message,
+      cardData: cardData ?? this.cardData,
+      isNfcEnabled: isNfcEnabled ?? this.isNfcEnabled,
+      licenseStatus: licenseStatus ?? this.licenseStatus,
+      debugLog: debugLog ?? this.debugLog,
+      lastWriteRequestId: lastWriteRequestId ?? this.lastWriteRequestId,
+      isWriteInProgress: isWriteInProgress ?? this.isWriteInProgress,
+      writeCompleted: writeCompleted ?? this.writeCompleted,
+    );
+  }
+}
 
-  // Write durumu takibi için
-  bool _isWriteInProgress = false;
-  bool _writeCompleted = false;
-
-  bool get isLoading => _isLoading;
-  String get message => _message;
-  ConsumerCardDTO? get cardData => _cardData;
-  bool get isNfcEnabled => _isNfcEnabled;
-  String get licenseStatus => _licenseStatus;
-  String get debugLog => _debugLog;
-  String get lastWriteRequestId => _lastWriteRequestId;
-  bool get isWriteInProgress => _isWriteInProgress;
-  bool get writeCompleted => _writeCompleted;
-
-  final _uuid = const Uuid();
-
-  // Constructor - NFC başlatır ve event listenerı kurar
-  NFCProvider() {
-    print('🏁 NFCProvider constructor called');
+class NFCNotifier extends StateNotifier<NFCState> {
+  NFCNotifier() : super(const NFCState()) {
+    print('🏁 NFCNotifier constructor called');
     _initializeNFC();
     _listenToNFCEvents();
   }
 
-  // Debug log mesajlarını zaman ile birlikte kaydeder
-  // Maksimum 50 satır tutarak performansı korur
+  static const platform = MethodChannel('com.example.kaski_nfc_app/methods');
+  static const eventChannel = EventChannel('com.example.kaski_nfc_app/events');
+
+  DateTime? _lastWriteStartTime;
+  final _uuid = const Uuid();
+
+  // Debug bilgileri için yeni propertyler
   void _addDebugLog(String log) {
     final timestamp = DateTime.now().toString().substring(11, 19);
-    _debugLog += '[$timestamp] $log\n';
+    final newDebugLog = state.debugLog + '[$timestamp] $log\n';
     print('🔍 DEBUG: $log');
 
     // Debug log'u maksimum 50 satır tut
-    final lines = _debugLog.split('\n');
-    if (lines.length > 50) {
-      _debugLog = lines.sublist(lines.length - 50).join('\n');
-    }
+    final lines = newDebugLog.split('\n');
+    final finalDebugLog = lines.length > 50
+        ? lines.sublist(lines.length - 50).join('\n')
+        : newDebugLog;
 
-    notifyListeners();
+    state = state.copyWith(debugLog: finalDebugLog);
   }
 
-  // Tüm debug loglarını temizler
   void clearDebugLog() {
-    _debugLog = '';
-    notifyListeners();
+    state = state.copyWith(debugLog: '');
   }
 
-  // NFC sistemini başlatır ve lisansı kontrol eder
-  // Uygulama başladığında otomatik olarak çalışır
   void _initializeNFC() async {
     try {
       _addDebugLog('NFC initialization started');
@@ -74,14 +96,11 @@ class NFCProvider extends ChangeNotifier {
       _addDebugLog('NFC activated successfully');
       await _checkLicense();
     } catch (e) {
-      _message = 'Failed to initialize NFC: $e';
+      state = state.copyWith(message: 'Failed to initialize NFC: $e');
       _addDebugLog('NFC initialization failed: $e');
-      notifyListeners();
     }
   }
 
-  // Android'den gelen NFC eventlerini dinleyen stream'i başlatır
-  // Sürekli çalışır ve gelen eventleri _handleNFCEvent'e yönlendirir
   void _listenToNFCEvents() {
     _addDebugLog('Starting NFC event listener');
     eventChannel.receiveBroadcastStream().listen(
@@ -89,17 +108,16 @@ class NFCProvider extends ChangeNotifier {
         _handleNFCEvent(event);
       },
       onError: (dynamic error) {
-        _message = 'NFC Event Error: $error';
+        state = state.copyWith(
+          message: 'NFC Event Error: $error',
+          isLoading: false,
+          isWriteInProgress: false,
+        );
         _addDebugLog('NFC Event Error: $error');
-        _isLoading = false;
-        _isWriteInProgress = false;
-        notifyListeners();
       },
     );
   }
 
-  // Gelen NFC eventlerini tip-türüne göre uygun handler metoduna yönlendirir
-  // Event türleri: licenseStatus, onResult, readCardResult, writeCardResult, error
   void _handleNFCEvent(dynamic event) {
     try {
       final Map<String, dynamic> eventData = Map<String, dynamic>.from(event);
@@ -132,44 +150,39 @@ class NFCProvider extends ChangeNotifier {
     } catch (e) {
       print('❌ Error handling NFC event: $e');
       _addDebugLog('Error handling event: $e');
-      _message = 'Error processing NFC event: $e';
-      _isLoading = false;
-      _isWriteInProgress = false;
-      notifyListeners();
+      state = state.copyWith(
+        message: 'Error processing NFC event: $e',
+        isLoading: false,
+        isWriteInProgress: false,
+      );
     }
   }
 
-  // Baylan kütüphanesinden gelen lisans durumu mesajlarını işler
-  // Lisans geçerli-geçersiz durumunu günceller
   void _handleLicenseStatus(Map<String, dynamic> eventData) {
     final String? message = eventData['message'];
-    _licenseStatus = message ?? 'Unknown license status';
-    _addDebugLog('License status: $_licenseStatus');
-    print('📄 License status updated: $_licenseStatus');
-    notifyListeners();
+    final licenseStatus = message ?? 'Unknown license status';
+    state = state.copyWith(licenseStatus: licenseStatus);
+    _addDebugLog('License status: $licenseStatus');
+    print('📄 License status updated: $licenseStatus');
   }
 
-  // Gelen NFC işlem sonuçlarını işler (BAYLAN'ın OnResult callback)
-  // Özellikle kart okundu sinyalini yakalar ve loading durumunu günceller
   void _handleOnResult(Map<String, dynamic> eventData) {
     final String? tag = eventData['tag'];
     final String? resultCode = eventData['code'];
 
-    _message = tag ?? 'Unknown result';
+    final message = tag ?? 'Unknown result';
     _addDebugLog('OnResult - Tag: $tag, Code: $resultCode');
 
     if (resultCode == 'CardReaded') {
-      _isLoading = false;
+      state = state.copyWith(message: message, isLoading: false);
+    } else {
+      state = state.copyWith(message: message);
     }
 
     print('🔄 OnResult - Tag: $tag, Code: $resultCode');
-    notifyListeners();
   }
 
-  // Kart okuma işleminin sonucunu işler
-  // Başarılıysa kart verilerini ConsumerCardDTO'ya dönüştürür
   void _handleReadCardResult(Map<String, dynamic> eventData) {
-    _isLoading = false;
     final String? resultCode = eventData['code'];
 
     _addDebugLog('Read card result: $resultCode');
@@ -180,50 +193,53 @@ class NFCProvider extends ChangeNotifier {
 
       if (cardDataRaw != null) {
         try {
-          // cardDataRaw'ı Map<String, dynamic> formatına çevir
           final Map<String, dynamic> cardDataMap = _safeConvertToMap(
             cardDataRaw,
           );
-
           _addDebugLog('Card data converted successfully');
           print('🗺️ Safe card data map: $cardDataMap');
 
-          // ConsumerCardDTO'ya çevir
-          _cardData = ConsumerCardDTO.fromJson(cardDataMap);
-          _message = 'Card read successfully';
-          _addDebugLog('Card data: ${_cardData.toString()}');
-
-          print('✅ Card data created successfully: $_cardData');
+          final cardData = ConsumerCardDTO.fromJson(cardDataMap);
+          state = state.copyWith(
+            cardData: cardData,
+            message: 'Card read successfully',
+            isLoading: false,
+          );
+          _addDebugLog('Card data: ${cardData.toString()}');
+          print('✅ Card data created successfully: $cardData');
         } catch (e) {
           print('❌ Error converting card data: $e');
           _addDebugLog('Error converting card data: $e');
-          _message = 'Error processing card data: $e';
-          _cardData = null;
+          state = state.copyWith(
+            message: 'Error processing card data: $e',
+            cardData: null,
+            isLoading: false,
+          );
         }
       } else {
         print('⚠️ Card data is null');
         _addDebugLog('Card data is null');
-        _message = 'Card data is empty';
-        _cardData = null;
+        state = state.copyWith(
+          message: 'Card data is empty',
+          cardData: null,
+          isLoading: false,
+        );
       }
     } else {
-      _message = _getErrorMessage(resultCode);
-      _cardData = null;
+      final message = _getErrorMessage(resultCode);
+      state = state.copyWith(
+        message: message,
+        cardData: null,
+        isLoading: false,
+      );
       _addDebugLog('Card read failed: $resultCode');
       print('❌ Card read failed: $resultCode');
     }
-
-    notifyListeners();
   }
 
-  // Kart yazma işleminin sonucunu işler
-  // İşlem süresini hesaplar ve sonuca göre mesaj günceller
   void _handleWriteCardResult(Map<String, dynamic> eventData) {
-    _isLoading = false;
-    _isWriteInProgress = false;
     final String? resultCode = eventData['code'];
 
-    // Write işleminin ne kadar sürdüğünü hesapla
     String durationText = '';
     if (_lastWriteStartTime != null) {
       final duration = DateTime.now().difference(_lastWriteStartTime!);
@@ -231,56 +247,60 @@ class NFCProvider extends ChangeNotifier {
     }
 
     _addDebugLog('Write card result: $resultCode$durationText');
-    _addDebugLog('Write request ID was: $_lastWriteRequestId');
+    _addDebugLog('Write request ID was: ${state.lastWriteRequestId}');
+
+    String message;
+    bool writeCompleted = false;
 
     if (resultCode == 'Success') {
-      _message = 'Card written successfully';
-      _writeCompleted = true;
+      message = 'Card written successfully';
+      writeCompleted = true;
       _addDebugLog('✅ WRITE SUCCESSFUL - Card was actually updated!');
       print('✅ Card write successful');
 
-      // Write başarılı olduğunda kart verisini tekrar oku (opsiyonel)
-      Future.delayed(Duration(milliseconds: 1000), () {
-        if (_cardData != null) {
+      // Write başarılı olduğunda kart verisini tekrar oku
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        if (state.cardData != null) {
           readCard();
         }
       });
     } else if (resultCode == 'ReadCardAgain') {
-      _message = 'Please place the card again and retry';
+      message = 'Please place the card again and retry';
       _addDebugLog('⚠️ Need to read card again');
       print('⚠️ Card write requires card to be read again: $resultCode');
     } else {
-      _message = _getErrorMessage(resultCode);
+      message = _getErrorMessage(resultCode);
       _addDebugLog('❌ WRITE FAILED: $resultCode');
       print('❌ Card write failed: $resultCode');
     }
 
-    // Write işlemi tamamlandı, değişkenleri sıfırla
+    state = state.copyWith(
+      isLoading: false,
+      isWriteInProgress: false,
+      message: message,
+      writeCompleted: writeCompleted,
+      lastWriteRequestId: '', // Sıfırla
+    );
+
     _lastWriteStartTime = null;
-    _lastWriteRequestId = '';
-
-    notifyListeners();
   }
 
-  // Genel hata mesajlarını işler
-  // Bilinmeyen hatalar veya sistem hataları için kullanılır
   void _handleError(Map<String, dynamic> eventData) {
-    _isLoading = false;
-    _isWriteInProgress = false;
     final String? errorMessage = eventData['message'];
-    _message = errorMessage ?? 'Unknown error occurred';
-    _addDebugLog('Error event: $_message');
-    print('❌ Error event: $_message');
-    notifyListeners();
+    final message = errorMessage ?? 'Unknown error occurred';
+    state = state.copyWith(
+      isLoading: false,
+      isWriteInProgress: false,
+      message: message,
+    );
+    _addDebugLog('Error event: $message');
+    print('❌ Error event: $message');
   }
 
-  // Çeşitli data tiplerini güvenli bir şekilde Map<String, dynamic>'e dönüştürür
-  // Complex objectleri JSON serialize için hazırlar
   Map<String, dynamic> _safeConvertToMap(dynamic data) {
     if (data is Map<String, dynamic>) {
       return data;
     } else if (data is Map) {
-      // Diğer Map türlerini dönüştür
       final Map<String, dynamic> result = {};
       data.forEach((key, value) {
         if (key is String) {
@@ -294,8 +314,6 @@ class NFCProvider extends ChangeNotifier {
     }
   }
 
-  // Değerleri güvenli bir şekilde JSON-compatible türlere dönüştürür
-  // Primitive olmayan türleri stringe çevirir
   dynamic _safeConvertValue(dynamic value) {
     if (value == null) {
       return null;
@@ -311,7 +329,6 @@ class NFCProvider extends ChangeNotifier {
     } else if (value is List) {
       return value.map(_safeConvertValue).toList();
     } else {
-      // Diğer türler için string'e çevir
       try {
         return value.toString();
       } catch (e) {
@@ -320,7 +337,6 @@ class NFCProvider extends ChangeNotifier {
     }
   }
 
-  // Baylan result codelarını kullanıcı dostu mesajlara çevirir
   String _getErrorMessage(String? resultCode) {
     switch (resultCode) {
       case 'CardNotReadYet':
@@ -336,11 +352,9 @@ class NFCProvider extends ChangeNotifier {
     }
   }
 
-  // Baylan kütüphanesinin lisansını kontrol eder
-  // Sabit license key ile lisans durumunu kontrol eder
   Future<void> _checkLicense() async {
     try {
-      final String licenseKey = "9283ebb4-9822-46fa-bbe3-ac4a4d25b8c2";
+      const String licenseKey = "9283ebb4-9822-46fa-bbe3-ac4a4d25b8c2";
       final String requestId = _uuid.v4();
 
       _addDebugLog(
@@ -352,48 +366,42 @@ class NFCProvider extends ChangeNotifier {
         'requestId': requestId,
       });
 
-      _licenseStatus = result['message'] ?? 'License checked';
-      _addDebugLog('License check result: $_licenseStatus');
-      notifyListeners();
+      final licenseStatus = result['message'] ?? 'License checked';
+      state = state.copyWith(licenseStatus: licenseStatus);
+      _addDebugLog('License check result: $licenseStatus');
     } catch (e) {
-      _licenseStatus = 'License check failed: $e';
+      final licenseStatus = 'License check failed: $e';
+      state = state.copyWith(licenseStatus: licenseStatus);
       _addDebugLog('License check failed: $e');
-      notifyListeners();
     }
   }
 
-  // Manuel NFC aç-kapa
   Future<void> toggleNFC(bool enable) async {
     try {
       if (enable) {
         _addDebugLog('Activating NFC...');
         await platform.invokeMethod('activateNFC');
-        _isNfcEnabled = true;
-        _message = 'NFC Activated';
+        state = state.copyWith(isNfcEnabled: true, message: 'NFC Activated');
         _addDebugLog('NFC activated');
       } else {
         _addDebugLog('Deactivating NFC...');
         await platform.invokeMethod('disableNFC');
-        _isNfcEnabled = false;
-        _message = 'NFC Deactivated';
+        state = state.copyWith(isNfcEnabled: false, message: 'NFC Deactivated');
         _addDebugLog('NFC deactivated');
       }
-      notifyListeners();
     } catch (e) {
-      _message = 'NFC operation failed: $e';
+      state = state.copyWith(message: 'NFC operation failed: $e');
       _addDebugLog('NFC operation failed: $e');
-      notifyListeners();
     }
   }
 
-  // NFC kartını okuma işlemini başlatır
-  // Kullanıcı kartı telefona yaklaştırdığında çalışır
   Future<void> readCard() async {
-    _isLoading = true;
-    _message = 'Reading card...';
-    _cardData = null;
-    _writeCompleted = false;
-    notifyListeners();
+    state = state.copyWith(
+      isLoading: true,
+      message: 'Reading card...',
+      cardData: null,
+      writeCompleted: false,
+    );
 
     try {
       final String requestId = _uuid.v4();
@@ -401,29 +409,30 @@ class NFCProvider extends ChangeNotifier {
       await platform.invokeMethod('readCard', {'requestId': requestId});
       print('📖 Read card request sent with ID: $requestId');
     } catch (e) {
-      _isLoading = false;
-      _message = 'Failed to read card: $e';
+      state = state.copyWith(
+        isLoading: false,
+        message: 'Failed to read card: $e',
+      );
       _addDebugLog('Read card failed: $e');
       print('❌ Read card error: $e');
-      notifyListeners();
     }
   }
 
-  // NFC kartına kredi yazma işlemini başlatır
-  // CreditRequestDTO'yu Android native katmanına gönderir
   Future<void> writeCard(CreditRequestDTO creditRequest) async {
-    _isLoading = true;
-    _isWriteInProgress = true;
-    _writeCompleted = false;
-    _message = 'Writing to card...';
     _lastWriteStartTime = DateTime.now();
-    notifyListeners();
+
+    state = state.copyWith(
+      isLoading: true,
+      isWriteInProgress: true,
+      writeCompleted: false,
+      message: 'Writing to card...',
+    );
 
     try {
       creditRequest.requestId = _uuid.v4();
-      _lastWriteRequestId = creditRequest.requestId!;
 
-      // CreditRequestDTO'yu Map'e çevir
+      state = state.copyWith(lastWriteRequestId: creditRequest.requestId!);
+
       final Map<String, dynamic> requestMap = {
         'credit': creditRequest.credit,
         'reserveCreditLimit': creditRequest.reserveCreditLimit,
@@ -433,7 +442,7 @@ class NFCProvider extends ChangeNotifier {
       };
 
       _addDebugLog('🚀 STARTING WRITE OPERATION');
-      _addDebugLog('Request ID: $_lastWriteRequestId');
+      _addDebugLog('Request ID: ${state.lastWriteRequestId}');
       _addDebugLog('Credit: ${creditRequest.credit}');
       _addDebugLog('Operation: ${requestMap['operationType']}');
       _addDebugLog('Full request: $requestMap');
@@ -443,18 +452,18 @@ class NFCProvider extends ChangeNotifier {
 
       _addDebugLog('Write command sent to native layer');
     } catch (e) {
-      _isLoading = false;
-      _isWriteInProgress = false;
-      _message = 'Failed to write card: $e';
+      state = state.copyWith(
+        isLoading: false,
+        isWriteInProgress: false,
+        message: 'Failed to write card: $e',
+        lastWriteRequestId: '',
+      );
       _addDebugLog('❌ Write card failed: $e');
       _lastWriteStartTime = null;
-      _lastWriteRequestId = '';
       print('❌ Write card error: $e');
-      notifyListeners();
     }
   }
 
-  // OperationType'ı string'e çeviren helper metod
   String _getOperationTypeString(OperationType operationType) {
     switch (operationType) {
       case OperationType.none:
@@ -468,48 +477,45 @@ class NFCProvider extends ChangeNotifier {
     }
   }
 
-  // Baylan kütüphanesinin server URL'ini ayarlar
-  // Genellikle test/production server geçişi için kullanılır
   Future<void> setUrl(String url) async {
     try {
       _addDebugLog('Setting URL: $url');
       await platform.invokeMethod('setUrl', {'url': url});
       _addDebugLog('URL set successfully');
     } catch (e) {
-      _message = 'Failed to set URL: $e';
+      state = state.copyWith(message: 'Failed to set URL: $e');
       _addDebugLog('Failed to set URL: $e');
-      notifyListeners();
     }
   }
 
-  // Mevcut hata/durum mesajını temizler
-  // UI'da mesajları sıfırlamak için kullanılır
   void clearMessage() {
-    _message = '';
-    notifyListeners();
+    state = state.copyWith(message: '');
   }
 
-  // Write durumunu sıfırlar
   void resetWriteState() {
-    _isWriteInProgress = false;
-    _writeCompleted = false;
+    state = state.copyWith(
+      isWriteInProgress: false,
+      writeCompleted: false,
+      lastWriteRequestId: '',
+    );
     _lastWriteStartTime = null;
-    _lastWriteRequestId = '';
-    notifyListeners();
   }
 
-  // Write işlemi hakkında detaylı debug bilgilerini döndürür
-  // Sorun giderme ve test amaçlı kullanılır
   String getWriteDebugInfo() {
     String info = 'WRITE DEBUG INFO:\n';
-    info += 'Last Write Request ID: $_lastWriteRequestId\n';
+    info += 'Last Write Request ID: ${state.lastWriteRequestId}\n';
     info += 'Write Start Time: ${_lastWriteStartTime?.toString() ?? "None"}\n';
-    info += 'Current Loading State: $_isLoading\n';
-    info += 'Write In Progress: $_isWriteInProgress\n';
-    info += 'Write Completed: $_writeCompleted\n';
-    info += 'Last Message: $_message\n';
-    info += 'NFC Enabled: $_isNfcEnabled\n';
-    info += 'License Status: $_licenseStatus\n';
+    info += 'Current Loading State: ${state.isLoading}\n';
+    info += 'Write In Progress: ${state.isWriteInProgress}\n';
+    info += 'Write Completed: ${state.writeCompleted}\n';
+    info += 'Last Message: ${state.message}\n';
+    info += 'NFC Enabled: ${state.isNfcEnabled}\n';
+    info += 'License Status: ${state.licenseStatus}\n';
     return info;
   }
 }
+
+// Provider tanımlaması
+final nfcProvider = StateNotifierProvider<NFCNotifier, NFCState>((ref) {
+  return NFCNotifier();
+});

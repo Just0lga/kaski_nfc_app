@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:kaski_nfc_app/pages/start_page.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Provider yerine Riverpod
 import 'package:kaski_nfc_app/pages/sonuc_page.dart';
 import '../providers/nfc_provider.dart';
 import '../models/consumer_card_dto.dart';
 import '../models/credit_request_dto.dart';
 import '../models/enums.dart';
 
-class KartaYukleme extends StatefulWidget {
+class KartaYukleme extends ConsumerStatefulWidget {
+  // StatefulWidget yerine ConsumerStatefulWidget
   final ConsumerCardDTO cardData;
   final double tonMiktari;
   final double tutar;
@@ -20,10 +21,10 @@ class KartaYukleme extends StatefulWidget {
   });
 
   @override
-  State<KartaYukleme> createState() => _KartaYuklemeState();
+  ConsumerState<KartaYukleme> createState() => _KartaYuklemeState(); // State yerine ConsumerState
 }
 
-class _KartaYuklemeState extends State<KartaYukleme> {
+class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
   bool _writeStarted = false;
   bool _isNavigating = false; // Navigation guard
   int _retryCount = 0;
@@ -53,7 +54,8 @@ class _KartaYuklemeState extends State<KartaYukleme> {
         _writeStarted = true;
       });
 
-      final nfcProvider = Provider.of<NFCProvider>(context, listen: false);
+      // ref.read ile notifier'a erişim
+      final nfcNotifier = ref.read(nfcProvider.notifier);
 
       print('🔄 Starting card writing process...');
       print('📊 Current card data: ${widget.cardData.toString()}');
@@ -78,7 +80,7 @@ class _KartaYuklemeState extends State<KartaYukleme> {
       print('🚀 Starting write operation with: ${creditRequest.toString()}');
 
       // Yazma işlemini başlat
-      nfcProvider.writeCard(creditRequest);
+      nfcNotifier.writeCard(creditRequest);
     }
   }
 
@@ -96,9 +98,9 @@ class _KartaYuklemeState extends State<KartaYukleme> {
       _writeStarted = false;
     });
 
-    final nfcProvider = Provider.of<NFCProvider>(context, listen: false);
-    nfcProvider.resetWriteState();
-    nfcProvider.clearMessage();
+    final nfcNotifier = ref.read(nfcProvider.notifier);
+    nfcNotifier.resetWriteState();
+    nfcNotifier.clearMessage();
 
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
@@ -132,6 +134,29 @@ class _KartaYuklemeState extends State<KartaYukleme> {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
 
+    // ref.watch ile state'i dinle
+    final nfcState = ref.watch(nfcProvider);
+
+    print('🔍 Consumer builder called');
+    print('  - isLoading: ${nfcState.isLoading}');
+    print('  - isWriteInProgress: ${nfcState.isWriteInProgress}');
+    print('  - writeCompleted: ${nfcState.writeCompleted}');
+    print('  - message: ${nfcState.message}');
+
+    // Write işlemi tamamlandığında - success mesajına bak
+    if (!nfcState.isLoading &&
+        nfcState.writeCompleted &&
+        (nfcState.message.toLowerCase().contains('success') ||
+            nfcState.message.toLowerCase().contains('written')) &&
+        !_isNavigating) {
+      print('✅ Write completed successfully, waiting before navigation...');
+
+      // 2 saniye bekle sonra sonuç sayfasına geç
+      Future.delayed(const Duration(seconds: 2), () {
+        _navigateToResult();
+      });
+    }
+
     return Scaffold(
       backgroundColor: const Color.fromRGBO(163, 221, 253, 1),
       appBar: AppBar(
@@ -157,263 +182,233 @@ class _KartaYuklemeState extends State<KartaYukleme> {
           tooltip: 'Ana Sayfa',
         ),
       ),
-      body: Consumer<NFCProvider>(
-        builder: (context, nfcProvider, child) {
-          print('🔍 Consumer builder called');
-          print('  - isLoading: ${nfcProvider.isLoading}');
-          print('  - isWriteInProgress: ${nfcProvider.isWriteInProgress}');
-          print('  - writeCompleted: ${nfcProvider.writeCompleted}');
-          print('  - message: ${nfcProvider.message}');
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Container(
+            height: MediaQuery.of(context).size.height - 100,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // NFC ikonu
+                CircleAvatar(
+                  backgroundColor: const Color.fromRGBO(235, 254, 254, 1.0),
+                  radius: width * 0.2,
+                  child: Icon(
+                    Icons.nfc,
+                    size: height * 0.11,
+                    color: const Color.fromRGBO(68, 95, 116, 1),
+                  ),
+                ),
 
-          // Write işlemi tamamlandığında - success mesajına bak
-          if (!nfcProvider.isLoading &&
-              nfcProvider.writeCompleted &&
-              (nfcProvider.message.toLowerCase().contains('success') ||
-                  nfcProvider.message.toLowerCase().contains('written')) &&
-              !_isNavigating) {
-            print(
-              '✅ Write completed successfully, waiting before navigation...',
-            );
+                SizedBox(height: height * 0.04),
 
-            // 2 saniye bekle sonra sonuç sayfasına geç
-            Future.delayed(const Duration(seconds: 2), () {
-              _navigateToResult();
-            });
-          }
+                // Ana mesaj - duruma göre değişen
+                Text(
+                  _getStatusMessage(nfcState),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Color.fromRGBO(235, 254, 254, 1.0),
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
 
-          return SafeArea(
-            child: SingleChildScrollView(
-              child: Container(
-                height: MediaQuery.of(context).size.height - 100,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // NFC ikonu
-                    CircleAvatar(
-                      backgroundColor: const Color.fromRGBO(235, 254, 254, 1.0),
-                      radius: width * 0.2,
-                      child: Icon(
-                        Icons.nfc,
-                        size: height * 0.11,
-                        color: const Color.fromRGBO(68, 95, 116, 1),
-                      ),
-                    ),
+                SizedBox(height: height * 0.04),
 
-                    SizedBox(height: height * 0.04),
+                // Progress bar
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: width * 0.15),
+                  child: LinearProgressIndicator(
+                    backgroundColor: const Color.fromRGBO(68, 95, 116, 1),
+                    color: const Color.fromRGBO(235, 254, 254, 1.0),
+                    value: _getProgressValue(nfcState),
+                  ),
+                ),
 
-                    // Ana mesaj - duruma göre değişen
-                    Text(
-                      _getStatusMessage(nfcProvider),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Color.fromRGBO(235, 254, 254, 1.0),
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                SizedBox(height: height * 0.02),
 
-                    SizedBox(height: height * 0.04),
+                // Durum metni
+                Text(
+                  _getSubStatusMessage(nfcState),
+                  style: const TextStyle(
+                    color: Color.fromRGBO(235, 254, 254, 1.0),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
 
-                    // Progress bar
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: width * 0.15),
-                      child: LinearProgressIndicator(
-                        backgroundColor: const Color.fromRGBO(68, 95, 116, 1),
-                        color: const Color.fromRGBO(235, 254, 254, 1.0),
-                        value: _getProgressValue(nfcProvider),
-                      ),
-                    ),
+                SizedBox(height: height * 0.04),
 
-                    SizedBox(height: height * 0.02),
-
-                    // Durum metni
-                    Text(
-                      _getSubStatusMessage(nfcProvider),
-                      style: const TextStyle(
-                        color: Color.fromRGBO(235, 254, 254, 1.0),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-
-                    SizedBox(height: height * 0.04),
-
-                    // İşlem detayları
-                    Container(
-                      margin: EdgeInsets.symmetric(horizontal: width * 0.1),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
-                        ),
-                      ),
-                      child: Column(
+                // İşlem detayları
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: width * 0.1),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white.withOpacity(0.2)),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                "Yüklenecek:",
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              Text(
-                                "${widget.tonMiktari} ton",
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                "Tutar:",
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              Text(
-                                "${widget.tutar.toStringAsFixed(0)} TL",
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          // Write tamamlandıysa başarı mesajı göster
-                          if (nfcProvider.writeCompleted) ...[
-                            const SizedBox(height: 12),
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.green.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
-                                  Icon(
-                                    Icons.check_circle,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    "Yükleme Başarılı!",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          const Text(
+                            "Yüklenecek:",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 16,
                             ),
-                          ],
-
-                          // Retry counter göster
-                          if (_retryCount > 0) ...[
-                            const SizedBox(height: 8),
-                            Text(
-                              "Deneme: $_retryCount/$MAX_RETRIES",
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                              ),
+                          ),
+                          Text(
+                            "${widget.tonMiktari} ton",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
-                          ],
+                          ),
                         ],
                       ),
-                    ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "Tutar:",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 16,
+                            ),
+                          ),
+                          Text(
+                            "${widget.tutar.toStringAsFixed(0)} TL",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
 
-                    // Hata mesajı veya retry butonları
-                    if (_shouldShowErrorSection(nfcProvider))
-                      _buildErrorSection(nfcProvider),
+                      // Write tamamlandıysa başarı mesajı göster
+                      if (nfcState.writeCompleted) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.check_circle,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                "Yükleme Başarılı!",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
 
-                    SizedBox(height: height * 0.05),
-
-                    // Debug bilgileri (development modunda)
-                    if (true) // Debug mode check
-                      _buildDebugSection(nfcProvider),
-                  ],
+                      // Retry counter göster
+                      if (_retryCount > 0) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          "Deneme: $_retryCount/$MAX_RETRIES",
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              ),
+
+                // Hata mesajı veya retry butonları
+                if (_shouldShowErrorSection(nfcState))
+                  _buildErrorSection(nfcState),
+
+                SizedBox(height: height * 0.05),
+
+                // Debug bilgileri (development modunda)
+                if (true) // Debug mode check
+                  _buildDebugSection(nfcState),
+              ],
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
 
   // Helper metodlar
 
-  String _getStatusMessage(NFCProvider nfcProvider) {
+  String _getStatusMessage(NFCState nfcState) {
     if (!_writeStarted) {
       return "Hazırlanıyor...";
-    } else if (nfcProvider.isWriteInProgress || nfcProvider.isLoading) {
+    } else if (nfcState.isWriteInProgress || nfcState.isLoading) {
       return "Kartınızı telefonunuza yaklaştırın";
-    } else if (nfcProvider.writeCompleted) {
+    } else if (nfcState.writeCompleted) {
       return "Yükleme Tamamlandı!";
-    } else if (nfcProvider.message.toLowerCase().contains('again')) {
+    } else if (nfcState.message.toLowerCase().contains('again')) {
       return "Kartı tekrar yaklaştırın";
-    } else if (nfcProvider.message.toLowerCase().contains('failed')) {
+    } else if (nfcState.message.toLowerCase().contains('failed')) {
       return "İşlem başarısız";
     } else {
       return "İşlem tamamlanıyor...";
     }
   }
 
-  String _getSubStatusMessage(NFCProvider nfcProvider) {
+  String _getSubStatusMessage(NFCState nfcState) {
     if (!_writeStarted) {
       return "İşlem başlatılıyor...";
-    } else if (nfcProvider.isWriteInProgress || nfcProvider.isLoading) {
+    } else if (nfcState.isWriteInProgress || nfcState.isLoading) {
       return "Su yükleniyor...";
-    } else if (nfcProvider.writeCompleted) {
+    } else if (nfcState.writeCompleted) {
       return "Sonuçlar hazırlanıyor...";
-    } else if (nfcProvider.message.toLowerCase().contains('again')) {
+    } else if (nfcState.message.toLowerCase().contains('again')) {
       return "Kartı sabit tutun";
     } else {
       return "İşlem tamamlanıyor...";
     }
   }
 
-  double? _getProgressValue(NFCProvider nfcProvider) {
+  double? _getProgressValue(NFCState nfcState) {
     if (!_writeStarted) {
       return 0.2;
-    } else if (nfcProvider.writeCompleted) {
+    } else if (nfcState.writeCompleted) {
       return 1.0;
-    } else if (nfcProvider.isWriteInProgress || nfcProvider.isLoading) {
+    } else if (nfcState.isWriteInProgress || nfcState.isLoading) {
       return null; // Indeterminate progress
     } else {
       return 0.8;
     }
   }
 
-  bool _shouldShowErrorSection(NFCProvider nfcProvider) {
-    return nfcProvider.message.isNotEmpty &&
-        !nfcProvider.message.toLowerCase().contains('success') &&
-        !nfcProvider.message.toLowerCase().contains('writing') &&
-        !nfcProvider.message.toLowerCase().contains('written') &&
-        !nfcProvider.isLoading &&
-        !nfcProvider.isWriteInProgress;
+  bool _shouldShowErrorSection(NFCState nfcState) {
+    return nfcState.message.isNotEmpty &&
+        !nfcState.message.toLowerCase().contains('success') &&
+        !nfcState.message.toLowerCase().contains('writing') &&
+        !nfcState.message.toLowerCase().contains('written') &&
+        !nfcState.isLoading &&
+        !nfcState.isWriteInProgress;
   }
 
-  Widget _buildErrorSection(NFCProvider nfcProvider) {
-    final isReadAgainError = nfcProvider.message.toLowerCase().contains(
-      'again',
-    );
+  Widget _buildErrorSection(NFCState nfcState) {
+    final isReadAgainError = nfcState.message.toLowerCase().contains('again');
     final canRetry = _retryCount < MAX_RETRIES;
 
     return Container(
@@ -437,7 +432,7 @@ class _KartaYuklemeState extends State<KartaYukleme> {
           Text(
             isReadAgainError
                 ? "Kartı telefonunuzun arka yüzüne yaklaştırıp sabit tutun"
-                : "Yazma Hatası: ${nfcProvider.message}",
+                : "Yazma Hatası: ${nfcState.message}",
             style: const TextStyle(color: Colors.white, fontSize: 14),
             textAlign: TextAlign.center,
           ),
@@ -479,7 +474,7 @@ class _KartaYuklemeState extends State<KartaYukleme> {
     );
   }
 
-  Widget _buildDebugSection(NFCProvider nfcProvider) {
+  Widget _buildDebugSection(NFCState nfcState) {
     return Container(
       margin: EdgeInsets.symmetric(
         horizontal: MediaQuery.of(context).size.width * 0.1,
@@ -511,25 +506,25 @@ class _KartaYuklemeState extends State<KartaYukleme> {
                   style: const TextStyle(color: Colors.white70, fontSize: 10),
                 ),
                 Text(
-                  "Is Loading: ${nfcProvider.isLoading}",
+                  "Is Loading: ${nfcState.isLoading}",
                   style: const TextStyle(color: Colors.white70, fontSize: 10),
                 ),
                 Text(
-                  "Write In Progress: ${nfcProvider.isWriteInProgress}",
+                  "Write In Progress: ${nfcState.isWriteInProgress}",
                   style: const TextStyle(color: Colors.white70, fontSize: 10),
                 ),
                 Text(
-                  "Write Completed: ${nfcProvider.writeCompleted}",
+                  "Write Completed: ${nfcState.writeCompleted}",
                   style: const TextStyle(color: Colors.white70, fontSize: 10),
                 ),
                 Text(
-                  "Last Message: ${nfcProvider.message}",
+                  "Last Message: ${nfcState.message}",
                   style: const TextStyle(color: Colors.white70, fontSize: 10),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  "Request ID: ${nfcProvider.lastWriteRequestId}",
+                  "Request ID: ${nfcState.lastWriteRequestId}",
                   style: const TextStyle(color: Colors.white70, fontSize: 10),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
