@@ -7,7 +7,7 @@ import '../models/credit_request_dto.dart';
 import '../models/enums.dart';
 import 'package:uuid/uuid.dart';
 
-// NFCState sınıfını oluşturalım
+// NFCState sınıfı
 @immutable
 class NFCState {
   const NFCState({
@@ -20,6 +20,7 @@ class NFCState {
     this.lastWriteRequestId = '',
     this.isWriteInProgress = false,
     this.writeCompleted = false,
+    this.initialCardSeriNo = '', // İlk okunan kart seri numarası
   });
 
   final bool isLoading;
@@ -31,6 +32,7 @@ class NFCState {
   final String lastWriteRequestId;
   final bool isWriteInProgress;
   final bool writeCompleted;
+  final String initialCardSeriNo; // İlk okunan kartın seri numarası
 
   NFCState copyWith({
     bool? isLoading,
@@ -42,6 +44,7 @@ class NFCState {
     String? lastWriteRequestId,
     bool? isWriteInProgress,
     bool? writeCompleted,
+    String? initialCardSeriNo,
   }) {
     return NFCState(
       isLoading: isLoading ?? this.isLoading,
@@ -53,6 +56,7 @@ class NFCState {
       lastWriteRequestId: lastWriteRequestId ?? this.lastWriteRequestId,
       isWriteInProgress: isWriteInProgress ?? this.isWriteInProgress,
       writeCompleted: writeCompleted ?? this.writeCompleted,
+      initialCardSeriNo: initialCardSeriNo ?? this.initialCardSeriNo,
     );
   }
 }
@@ -200,10 +204,20 @@ class NFCNotifier extends StateNotifier<NFCState> {
           print('🗺️ Safe card data map: $cardDataMap');
 
           final cardData = ConsumerCardDTO.fromJson(cardDataMap);
+
+          // İlk kart okuma ise kartın seri numarasını kaydet
+          String initialCardSeriNo = state.initialCardSeriNo;
+          if (initialCardSeriNo.isEmpty && cardData.cardSeriNo != null) {
+            initialCardSeriNo = cardData.cardSeriNo!;
+            _addDebugLog('Initial card seri no set: $initialCardSeriNo');
+            print('🔒 Initial card seri no saved: $initialCardSeriNo');
+          }
+
           state = state.copyWith(
             cardData: cardData,
             message: 'Card read successfully',
             isLoading: false,
+            initialCardSeriNo: initialCardSeriNo,
           );
           _addDebugLog('Card data: ${cardData.toString()}');
           print('✅ Card data created successfully: $cardData');
@@ -376,6 +390,24 @@ class NFCNotifier extends StateNotifier<NFCState> {
     }
   }
 
+  // Kart değişimi kontrolü için yeni metod
+  bool isCardChanged() {
+    if (state.initialCardSeriNo.isEmpty || state.cardData?.cardSeriNo == null) {
+      return false;
+    }
+
+    final bool changed = state.initialCardSeriNo != state.cardData!.cardSeriNo!;
+    if (changed) {
+      print('🚨 CARD CHANGED DETECTED!');
+      print('  - Initial: ${state.initialCardSeriNo}');
+      print('  - Current: ${state.cardData!.cardSeriNo}');
+      _addDebugLog(
+        'CARD CHANGED! Initial: ${state.initialCardSeriNo}, Current: ${state.cardData!.cardSeriNo}',
+      );
+    }
+    return changed;
+  }
+
   Future<void> toggleNFC(bool enable) async {
     try {
       if (enable) {
@@ -418,8 +450,46 @@ class NFCNotifier extends StateNotifier<NFCState> {
     }
   }
 
+  // Write işlemi öncesi kart okuma ve kontrol
+  Future<void> readCardBeforeWrite() async {
+    _addDebugLog('Reading card before write operation...');
+
+    state = state.copyWith(isLoading: true, message: 'Validating card...');
+
+    try {
+      final String requestId = _uuid.v4();
+      _addDebugLog('Starting pre-write card read with request ID: $requestId');
+      await platform.invokeMethod('readCard', {'requestId': requestId});
+      print('📖 Pre-write card read request sent with ID: $requestId');
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        message: 'Failed to validate card: $e',
+      );
+      _addDebugLog('Pre-write card read failed: $e');
+      print('❌ Pre-write card read error: $e');
+    }
+  }
+
   Future<void> writeCard(CreditRequestDTO creditRequest) async {
     _lastWriteStartTime = DateTime.now();
+
+    // Önce kart değişimi kontrolü yap
+    if (isCardChanged()) {
+      _addDebugLog('❌ CARD CHANGE DETECTED - Write operation blocked!');
+      print('🚨 Card change detected - blocking write operation');
+
+      // Async olarak state'i değiştir
+      Future.microtask(() {
+        state = state.copyWith(
+          isLoading: false,
+          isWriteInProgress: false,
+          writeCompleted: false,
+          message: 'DIFFERENT_CARD_DETECTED', // Özel hata kodu
+        );
+      });
+      return;
+    }
 
     state = state.copyWith(
       isLoading: true,
@@ -445,6 +515,8 @@ class NFCNotifier extends StateNotifier<NFCState> {
       _addDebugLog('Request ID: ${state.lastWriteRequestId}');
       _addDebugLog('Credit: ${creditRequest.credit}');
       _addDebugLog('Operation: ${requestMap['operationType']}');
+      _addDebugLog('Card SeriNo: ${state.cardData?.cardSeriNo ?? "Unknown"}');
+      _addDebugLog('Initial SeriNo: ${state.initialCardSeriNo}');
       _addDebugLog('Full request: $requestMap');
 
       print('💳 Write card request: $requestMap');
@@ -501,6 +573,29 @@ class NFCNotifier extends StateNotifier<NFCState> {
     _lastWriteStartTime = null;
   }
 
+  void resetToInitialState() {
+    _addDebugLog('🔄 Resetting NFC Provider to initial state');
+
+    state = const NFCState(
+      isLoading: false,
+      message: '',
+      cardData: null,
+      isNfcEnabled: false,
+      licenseStatus: '',
+      debugLog: '',
+      lastWriteRequestId: '',
+      isWriteInProgress: false,
+      writeCompleted: false,
+      initialCardSeriNo: '', // Bu da sıfırlanacak
+    );
+
+    _lastWriteStartTime = null;
+
+    print(
+      '✨ NFC Provider reset to initial state (including initialCardSeriNo)',
+    );
+  }
+
   String getWriteDebugInfo() {
     String info = 'WRITE DEBUG INFO:\n';
     info += 'Last Write Request ID: ${state.lastWriteRequestId}\n';
@@ -511,6 +606,9 @@ class NFCNotifier extends StateNotifier<NFCState> {
     info += 'Last Message: ${state.message}\n';
     info += 'NFC Enabled: ${state.isNfcEnabled}\n';
     info += 'License Status: ${state.licenseStatus}\n';
+    info += 'Initial Card SeriNo: ${state.initialCardSeriNo}\n';
+    info += 'Current Card SeriNo: ${state.cardData?.cardSeriNo ?? "None"}\n';
+    info += 'Card Changed: ${isCardChanged()}\n';
     return info;
   }
 }

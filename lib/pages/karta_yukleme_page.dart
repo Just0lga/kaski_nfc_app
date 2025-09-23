@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kaski_nfc_app/pages/start_page.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // Provider yerine Riverpod
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kaski_nfc_app/pages/sonuc_page.dart';
 import '../providers/nfc_provider.dart';
 import '../models/consumer_card_dto.dart';
@@ -8,7 +8,6 @@ import '../models/credit_request_dto.dart';
 import '../models/enums.dart';
 
 class KartaYukleme extends ConsumerStatefulWidget {
-  // StatefulWidget yerine ConsumerStatefulWidget
   final ConsumerCardDTO cardData;
   final double tonMiktari;
   final double tutar;
@@ -21,14 +20,14 @@ class KartaYukleme extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<KartaYukleme> createState() => _KartaYuklemeState(); // State yerine ConsumerState
+  ConsumerState<KartaYukleme> createState() => _KartaYuklemeState();
 }
 
 class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
   bool _writeStarted = false;
-  bool _isNavigating = false; // Navigation guard
+  bool _isNavigating = false;
   int _retryCount = 0;
-  static const int MAX_RETRIES = 3;
+  bool _cardValidated = false;
 
   @override
   void initState() {
@@ -52,50 +51,59 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
     if (!_writeStarted && mounted) {
       setState(() {
         _writeStarted = true;
+        _cardValidated = false;
       });
 
-      // ref.read ile notifier'a erişim
       final nfcNotifier = ref.read(nfcProvider.notifier);
 
       print('🔄 Starting card writing process...');
       print('📊 Current card data: ${widget.cardData.toString()}');
       print('💰 Amount to add: ${widget.tutar}');
-
-      // Yeni kredi miktarını hesapla (mevcut + eklenen tutar)
-      final currentCredit = widget.cardData.mainCredit ?? 0.0;
-      final newCredit = currentCredit + widget.tutar;
-
       print(
-        '💳 New credit will be: $newCredit (current: $currentCredit + amount: ${widget.tutar})',
+        '🔒 Initial card seri no: ${ref.read(nfcProvider).initialCardSeriNo}',
       );
 
-      // Kart yazma işlemi için request oluştur
-      final creditRequest = CreditRequestDTO(
-        credit: newCredit,
-        reserveCreditLimit: widget.cardData.reserveCredit ?? 0.0,
-        criticalCreditLimit: widget.cardData.criticalCreditLimit ?? 0.0,
-        operationType: OperationType.setCredit, // Kredi set et
-      );
-
-      print('🚀 Starting write operation with: ${creditRequest.toString()}');
-
-      // Yazma işlemini başlat
-      nfcNotifier.writeCard(creditRequest);
+      // Önce kart okuyarak doğruluğu kontrol et
+      nfcNotifier.readCardBeforeWrite();
     }
   }
 
-  void _retryWriting() {
-    if (_retryCount >= MAX_RETRIES) {
-      print('❌ Max retry count reached, navigating to result');
-      _navigateToResult();
-      return;
-    }
+  void _proceedWithWrite() {
+    setState(() {
+      _cardValidated = true;
+    });
 
+    final nfcNotifier = ref.read(nfcProvider.notifier);
+
+    // Yeni kredi miktarını hesapla (mevcut + eklenen tutar)
+    final currentCredit = widget.cardData.mainCredit ?? 0.0;
+    final newCredit = currentCredit + widget.tutar;
+
+    print(
+      '💳 New credit will be: $newCredit (current: $currentCredit + amount: ${widget.tutar})',
+    );
+
+    // Kart yazma işlemi için request oluştur
+    final creditRequest = CreditRequestDTO(
+      credit: newCredit,
+      reserveCreditLimit: widget.cardData.reserveCredit ?? 0.0,
+      criticalCreditLimit: widget.cardData.criticalCreditLimit ?? 0.0,
+      operationType: OperationType.setCredit,
+    );
+
+    print('🚀 Starting write operation with: ${creditRequest.toString()}');
+
+    // Yazma işlemini başlat
+    nfcNotifier.writeCard(creditRequest);
+  }
+
+  void _retryWriting() {
     _retryCount++;
-    print('🔄 Retry attempt $_retryCount/$MAX_RETRIES');
+    print('🔄 Retry attempt $_retryCount (unlimited retries)');
 
     setState(() {
       _writeStarted = false;
+      _cardValidated = false;
     });
 
     final nfcNotifier = ref.read(nfcProvider.notifier);
@@ -129,12 +137,26 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
     }
   }
 
+  void _goBackToStartPage() {
+    if (!_isNavigating && mounted) {
+      _isNavigating = true;
+      print('🏠 Going back to start page...');
+
+      final nfcNotifier = ref.read(nfcProvider.notifier);
+      nfcNotifier.resetToInitialState();
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const StartPage()),
+        (route) => false,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
 
-    // ref.watch ile state'i dinle
     final nfcState = ref.watch(nfcProvider);
 
     print('🔍 Consumer builder called');
@@ -142,8 +164,41 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
     print('  - isWriteInProgress: ${nfcState.isWriteInProgress}');
     print('  - writeCompleted: ${nfcState.writeCompleted}');
     print('  - message: ${nfcState.message}');
+    print('  - cardValidated: $_cardValidated');
 
-    // Write işlemi tamamlandığında - success mesajına bak
+    // Kart değişimi tespit edildi
+    if (nfcState.message == 'DIFFERENT_CARD_DETECTED') {
+      return _buildCardChangeWarningScreen(height, width);
+    }
+
+    // Kart okuma tamamlandıktan sonra write işlemine geç
+    if (!nfcState.isLoading &&
+        nfcState.cardData != null &&
+        nfcState.message.contains('successfully') &&
+        _writeStarted &&
+        !_cardValidated &&
+        !nfcState.isWriteInProgress &&
+        !nfcState.writeCompleted &&
+        !_isNavigating) {
+      // Kart değişimi kontrolü - async olarak yap
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final nfcNotifier = ref.read(nfcProvider.notifier);
+        if (nfcNotifier.isCardChanged()) {
+          // Kart değişti, uyarı verilecek (yukarıda handle edilecek)
+          print('🚨 Card changed detected, showing warning');
+        } else {
+          // Aynı kart, write işlemine devam et
+          print('✅ Same card detected, proceeding with write');
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              _proceedWithWrite();
+            }
+          });
+        }
+      });
+    }
+
+    // Write işlemi tamamlandığında - sadece başarılı olduğunda sonuç sayfasına git
     if (!nfcState.isLoading &&
         nfcState.writeCompleted &&
         (nfcState.message.toLowerCase().contains('success') ||
@@ -151,12 +206,163 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
         !_isNavigating) {
       print('✅ Write completed successfully, waiting before navigation...');
 
-      // 2 saniye bekle sonra sonuç sayfasına geç
-      Future.delayed(const Duration(seconds: 2), () {
-        _navigateToResult();
+      // PostFrameCallback ile navigation'ı güvenli hale getir
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(seconds: 2), () {
+          _navigateToResult();
+        });
       });
     }
 
+    return _buildMainScreen(height, width, nfcState);
+  }
+
+  Widget _buildCardChangeWarningScreen(double height, double width) {
+    return Scaffold(
+      backgroundColor: Colors.red[400],
+      appBar: AppBar(
+        title: const Text(
+          "Kart Uyarısı",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 30,
+            color: Colors.white,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.red[600],
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.home, color: Colors.white),
+          onPressed: _goBackToStartPage,
+          tooltip: 'Ana Sayfa',
+        ),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Uyarı ikonu
+            Icon(Icons.warning, size: width * 0.3, color: Colors.white),
+
+            SizedBox(height: height * 0.04),
+
+            // Uyarı mesajı
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: width * 0.08),
+              child: const Text(
+                "FARKLI KART TESPİT EDİLDİ!",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+
+            SizedBox(height: height * 0.02),
+
+            // Açıklama metni
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: width * 0.1),
+              child: const Text(
+                "İlk okuduğunuz karttan farklı bir kart yaklaştırdınız. Güvenlik nedeniyle işlem durduruldu.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
+            ),
+
+            SizedBox(height: height * 0.04),
+
+            // Bilgi kutusu
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: width * 0.08),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    "Ne yapmalısınız:",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "1. İlk okuduğunuz kartı tekrar yaklaştırın\n2. Veya ana sayfaya dönerek baştan başlayın",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: height * 0.06),
+
+            // Butonlar
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Kartı tekrar oku ve kontrol et
+                    setState(() {
+                      _writeStarted = false;
+                      _cardValidated = false;
+                    });
+                    final nfcNotifier = ref.read(nfcProvider.notifier);
+                    nfcNotifier.clearMessage();
+                    Future.delayed(const Duration(milliseconds: 500), () {
+                      if (mounted) {
+                        _startCardWriting();
+                      }
+                    });
+                  },
+                  icon: const Icon(Icons.refresh, size: 20),
+                  label: const Text(
+                    "Doğru Kartı Yaklaştır",
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.red[600],
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _goBackToStartPage,
+                  icon: const Icon(Icons.home, size: 20),
+                  label: const Text(
+                    "Ana Sayfa",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red[600],
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainScreen(double height, double width, NFCState nfcState) {
     return Scaffold(
       backgroundColor: const Color.fromRGBO(163, 221, 253, 1),
       appBar: AppBar(
@@ -173,12 +379,7 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.home, color: Color.fromRGBO(68, 95, 116, 1)),
-          onPressed: () {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const StartPage()),
-              (route) => false,
-            );
-          },
+          onPressed: _goBackToStartPage,
           tooltip: 'Ana Sayfa',
         ),
       ),
@@ -203,13 +404,18 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
                 SizedBox(height: height * 0.04),
 
                 // Ana mesaj - duruma göre değişen
-                Text(
-                  _getStatusMessage(nfcState),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color.fromRGBO(235, 254, 254, 1.0),
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: width * 0.05),
+                  child: Text(
+                    _getStatusMessage(nfcState),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Color.fromRGBO(235, 254, 254, 1.0),
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
 
@@ -228,12 +434,18 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
                 SizedBox(height: height * 0.02),
 
                 // Durum metni
-                Text(
-                  _getSubStatusMessage(nfcState),
-                  style: const TextStyle(
-                    color: Color.fromRGBO(235, 254, 254, 1.0),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: width * 0.1),
+                  child: Text(
+                    _getSubStatusMessage(nfcState),
+                    style: const TextStyle(
+                      color: Color.fromRGBO(235, 254, 254, 1.0),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
 
@@ -326,10 +538,10 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
                       if (_retryCount > 0) ...[
                         const SizedBox(height: 8),
                         Text(
-                          "Deneme: $_retryCount/$MAX_RETRIES",
+                          "Deneme: $_retryCount",
                           style: const TextStyle(
                             color: Colors.white70,
-                            fontSize: 12,
+                            fontSize: 11,
                           ),
                         ),
                       ],
@@ -337,15 +549,11 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
                   ),
                 ),
 
-                // Hata mesajı veya retry butonları
+                // Hata mesajı veya retry butonları - sadece retry butonu
                 if (_shouldShowErrorSection(nfcState))
                   _buildErrorSection(nfcState),
 
                 SizedBox(height: height * 0.05),
-
-                // Debug bilgileri (development modunda)
-                if (true) // Debug mode check
-                  _buildDebugSection(nfcState),
               ],
             ),
           ),
@@ -359,42 +567,51 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
   String _getStatusMessage(NFCState nfcState) {
     if (!_writeStarted) {
       return "Hazırlanıyor...";
-    } else if (nfcState.isWriteInProgress || nfcState.isLoading) {
-      return "Kartınızı telefonunuza yaklaştırın";
+    } else if (!_cardValidated && nfcState.isLoading) {
+      return "Kart kontrol ediliyor...";
+    } else if (_cardValidated &&
+        (nfcState.isWriteInProgress || nfcState.isLoading)) {
+      return "Kartı yaklaştırın";
     } else if (nfcState.writeCompleted) {
       return "Yükleme Tamamlandı!";
     } else if (nfcState.message.toLowerCase().contains('again')) {
       return "Kartı tekrar yaklaştırın";
     } else if (nfcState.message.toLowerCase().contains('failed')) {
-      return "İşlem başarısız";
+      return "Tekrar deneyiniz";
     } else {
-      return "İşlem tamamlanıyor...";
+      return "İşlem devam ediyor...";
     }
   }
 
   String _getSubStatusMessage(NFCState nfcState) {
     if (!_writeStarted) {
       return "İşlem başlatılıyor...";
-    } else if (nfcState.isWriteInProgress || nfcState.isLoading) {
+    } else if (!_cardValidated && nfcState.isLoading) {
+      return "Güvenlik kontrolü...";
+    } else if (_cardValidated &&
+        (nfcState.isWriteInProgress || nfcState.isLoading)) {
       return "Su yükleniyor...";
     } else if (nfcState.writeCompleted) {
       return "Sonuçlar hazırlanıyor...";
     } else if (nfcState.message.toLowerCase().contains('again')) {
       return "Kartı sabit tutun";
     } else {
-      return "İşlem tamamlanıyor...";
+      return "Lütfen bekleyin...";
     }
   }
 
   double? _getProgressValue(NFCState nfcState) {
     if (!_writeStarted) {
-      return 0.2;
-    } else if (nfcState.writeCompleted) {
+      return 0.1;
+    } else if (!_cardValidated && nfcState.isLoading) {
+      return 0.3; // Kart kontrol aşaması
+    } else if (_cardValidated && nfcState.writeCompleted) {
       return 1.0;
-    } else if (nfcState.isWriteInProgress || nfcState.isLoading) {
+    } else if (_cardValidated &&
+        (nfcState.isWriteInProgress || nfcState.isLoading)) {
       return null; // Indeterminate progress
     } else {
-      return 0.8;
+      return 0.6;
     }
   }
 
@@ -403,135 +620,75 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
         !nfcState.message.toLowerCase().contains('success') &&
         !nfcState.message.toLowerCase().contains('writing') &&
         !nfcState.message.toLowerCase().contains('written') &&
+        !nfcState.message.toLowerCase().contains('validating') &&
+        !nfcState.message.toLowerCase().contains('checking') &&
+        nfcState.message != 'DIFFERENT_CARD_DETECTED' &&
         !nfcState.isLoading &&
         !nfcState.isWriteInProgress;
   }
 
   Widget _buildErrorSection(NFCState nfcState) {
     final isReadAgainError = nfcState.message.toLowerCase().contains('again');
-    final canRetry = _retryCount < MAX_RETRIES;
 
     return Container(
       margin: EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width * 0.1,
+        horizontal: MediaQuery.of(context).size.width * 0.08,
       ),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.1),
+        color: Colors.orange.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.red.withOpacity(0.3)),
+        border: Border.all(color: Colors.orange.withOpacity(0.3)),
       ),
       child: Column(
         children: [
           Icon(
-            isReadAgainError ? Icons.nfc : Icons.error,
+            isReadAgainError ? Icons.nfc : Icons.refresh,
             color: Colors.white,
             size: 24,
           ),
           const SizedBox(height: 8),
           Text(
             isReadAgainError
-                ? "Kartı telefonunuzun arka yüzüne yaklaştırıp sabit tutun"
-                : "Yazma Hatası: ${nfcState.message}",
+                ? "Kartı arka yüze yaklaştırıp sabit tutun"
+                : "Tekrar deneyiniz",
             style: const TextStyle(color: Colors.white, fontSize: 14),
             textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              if (canRetry)
-                ElevatedButton.icon(
-                  onPressed: _retryWriting,
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: Text("Tekrar Dene ($_retryCount/$MAX_RETRIES)"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color.fromRGBO(163, 221, 253, 1),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                  ),
-                ),
-              ElevatedButton.icon(
-                onPressed: _navigateToResult,
-                icon: const Icon(Icons.skip_next, size: 18),
-                label: const Text("Geç"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
+
+          // Sadece retry butonu
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.5,
+            child: ElevatedButton.icon(
+              onPressed: _retryWriting,
+              icon: const Icon(Icons.refresh, size: 16),
+              label: Text(
+                "Tekrar Dene",
+                style: const TextStyle(fontSize: 14),
+                overflow: TextOverflow.ellipsis,
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: const Color.fromRGBO(163, 221, 253, 1),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
                 ),
               ),
-            ],
+            ),
           ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildDebugSection(NFCState nfcState) {
-    return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width * 0.1,
-      ),
-      child: ExpansionTile(
-        title: const Text(
-          "Debug Info",
-          style: TextStyle(color: Colors.white70, fontSize: 12),
-        ),
-        iconColor: Colors.white70,
-        collapsedIconColor: Colors.white70,
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(4),
+          // Retry sayısını ayrı satırda göster
+          if (_retryCount > 0) ...[
+            const SizedBox(height: 6),
+            Text(
+              "Deneme: $_retryCount",
+              style: const TextStyle(color: Colors.white70, fontSize: 11),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Write Started: $_writeStarted",
-                  style: const TextStyle(color: Colors.white70, fontSize: 10),
-                ),
-                Text(
-                  "Retry Count: $_retryCount",
-                  style: const TextStyle(color: Colors.white70, fontSize: 10),
-                ),
-                Text(
-                  "Is Loading: ${nfcState.isLoading}",
-                  style: const TextStyle(color: Colors.white70, fontSize: 10),
-                ),
-                Text(
-                  "Write In Progress: ${nfcState.isWriteInProgress}",
-                  style: const TextStyle(color: Colors.white70, fontSize: 10),
-                ),
-                Text(
-                  "Write Completed: ${nfcState.writeCompleted}",
-                  style: const TextStyle(color: Colors.white70, fontSize: 10),
-                ),
-                Text(
-                  "Last Message: ${nfcState.message}",
-                  style: const TextStyle(color: Colors.white70, fontSize: 10),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  "Request ID: ${nfcState.lastWriteRequestId}",
-                  style: const TextStyle(color: Colors.white70, fontSize: 10),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
+          ],
         ],
       ),
     );

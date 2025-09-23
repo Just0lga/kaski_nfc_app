@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // Provider yerine Riverpod
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kaski_nfc_app/pages/abone_bilgileri_page.dart';
 import '../providers/nfc_provider.dart';
 
 class StartPage extends ConsumerStatefulWidget {
-  // StatefulWidget yerine ConsumerStatefulWidget
   const StartPage({super.key});
 
   @override
-  ConsumerState<StartPage> createState() => _StartPageState(); // State yerine ConsumerState
+  ConsumerState<StartPage> createState() => _StartPageState();
 }
 
 class _StartPageState extends ConsumerState<StartPage>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
+  bool _hasNavigated = false; // Navigation kontrolü için
 
   @override
   void initState() {
     super.initState();
-    print("xxx StartPage");
+    print("xxx StartPage - initState called");
+
+    _hasNavigated = false; // Reset navigation flag
 
     // Animasyon kontrolcüsü
     _animationController = AnimationController(
@@ -33,21 +35,40 @@ class _StartPageState extends ConsumerState<StartPage>
 
     // NFC provider'ı dinle
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // ref.read ile provider'a erişim - listen: false ile aynı
-      final nfcNotifier = ref.read(nfcProvider.notifier);
+      print("🔄 StartPage - PostFrameCallback called");
 
-      // NFC'yi aktif et
+      final nfcNotifier = ref.read(nfcProvider.notifier);
+      final currentState = ref.read(nfcProvider);
+
+      print("📊 Current NFC state:");
+      print(
+        "  - cardData: ${currentState.cardData != null ? 'exists' : 'null'}",
+      );
+      print("  - isLoading: ${currentState.isLoading}");
+      print("  - message: ${currentState.message}");
+
+      // Eğer kart verisi varsa onu temizle ve yeniden başla
+      if (currentState.cardData != null) {
+        print("🧹 Found existing card data, clearing it");
+        nfcNotifier.resetToInitialState();
+      }
+
+      // NFC'yi aktif et ve kart okumaya başla
+      print("🔛 Activating NFC and starting card read");
       nfcNotifier.toggleNFC(true);
 
-      // Kart okuma işlemini başlat
       Future.delayed(const Duration(milliseconds: 500), () {
-        nfcNotifier.readCard();
+        if (mounted && !_hasNavigated) {
+          print("📖 Starting card read operation");
+          nfcNotifier.readCard();
+        }
       });
     });
   }
 
   @override
   void dispose() {
+    print("🧹 StartPage - dispose called");
     _animationController.dispose();
     super.dispose();
   }
@@ -60,16 +81,30 @@ class _StartPageState extends ConsumerState<StartPage>
     // ref.watch ile state'i dinle
     final nfcState = ref.watch(nfcProvider);
 
+    print('🔍 StartPage build - NFC State:');
+    print('  - cardData: ${nfcState.cardData != null ? 'exists' : 'null'}');
+    print('  - isLoading: ${nfcState.isLoading}');
+    print('  - hasNavigated: $_hasNavigated');
+
     // Kart başarıyla okunduğunda abone bilgileri sayfasına geç
-    if (nfcState.cardData != null && !nfcState.isLoading) {
+    // Sadece bir kez navigation yap
+    if (nfcState.cardData != null &&
+        !nfcState.isLoading &&
+        !_hasNavigated &&
+        mounted) {
+      print('✅ Card data available, navigating to AboneBilgileriPage');
+      _hasNavigated = true; // Navigation flag'ini set et
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                AboneBilgileriPage(cardData: nfcState.cardData!),
-          ),
-        );
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  AboneBilgileriPage(cardData: nfcState.cardData!),
+            ),
+          );
+        }
       });
     }
 
@@ -137,9 +172,11 @@ class _StartPageState extends ConsumerState<StartPage>
 
             // Hata mesajı varsa göster
             if (nfcState.message.isNotEmpty &&
-                !nfcState.message.contains('success'))
+                !nfcState.message.toLowerCase().contains('success') &&
+                nfcState.cardData ==
+                    null) // Sadece kart verisi yoksa hata göster
               Container(
-                margin: const EdgeInsets.only(top: 20),
+                margin: const EdgeInsets.only(top: 20, left: 20, right: 20),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.red.withOpacity(0.1),
@@ -156,9 +193,11 @@ class _StartPageState extends ConsumerState<StartPage>
                     const SizedBox(height: 8),
                     ElevatedButton(
                       onPressed: () {
-                        final notifier = ref.read(nfcProvider.notifier);
-                        notifier.clearMessage();
-                        notifier.readCard();
+                        if (!_hasNavigated) {
+                          final notifier = ref.read(nfcProvider.notifier);
+                          notifier.clearMessage();
+                          notifier.readCard();
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
@@ -191,6 +230,17 @@ class _StartPageState extends ConsumerState<StartPage>
                 style: const TextStyle(color: Colors.white70, fontSize: 12),
               ),
             ),
+
+            // Debug bilgisi (geliştirme için)
+            if (true) // Debug mode
+              Container(
+                margin: const EdgeInsets.only(top: 20),
+                padding: const EdgeInsets.all(8),
+                child: Text(
+                  "Debug: hasNavigated=$_hasNavigated, cardData=${nfcState.cardData != null}",
+                  style: const TextStyle(color: Colors.white70, fontSize: 10),
+                ),
+              ),
           ],
         ),
       ),
