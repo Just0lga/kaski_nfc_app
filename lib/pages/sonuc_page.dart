@@ -28,9 +28,13 @@ class SonucPage extends StatelessWidget {
         centerTitle: true,
         title: const Text(
           "İşlem Sonucu",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+            color: Colors.white,
+          ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.blue,
         automaticallyImplyLeading: false, // Geri butonu kaldır
       ),
       body: SafeArea(
@@ -38,45 +42,54 @@ class SonucPage extends StatelessWidget {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    SizedBox(height: height * 0.05),
+                    SizedBox(height: 16),
 
-                    // Basit başarı ikonu - animasyon yok
-                    const Icon(
-                      Icons.check_circle,
-                      color: Colors.green,
-                      size: 120,
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFF10B981).withOpacity(0.1),
+                            const Color(0xFF10B981).withOpacity(0.05),
+                          ],
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check_circle_rounded,
+                        color: Colors.green,
+                        size: 120,
+                      ),
                     ),
-
-                    const SizedBox(height: 20),
-
+                    const SizedBox(height: 16),
                     const Text(
                       "İşlem Başarılı!",
                       style: TextStyle(
                         fontSize: 28,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w800,
                         color: Colors.green,
+                        letterSpacing: -0.5,
                       ),
                     ),
 
-                    SizedBox(height: height * 0.03),
+                    SizedBox(height: 16),
 
                     // İşlem detayları
                     Container(
                       margin: EdgeInsets.symmetric(horizontal: width * 0.08),
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.grey[50],
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey[200]!),
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.blue[200]!),
                       ),
                       child: Column(
                         children: [
                           // Yüklenen miktar
                           _buildDetailRow(
-                            "Yüklenen Miktar:",
+                            "Yüklenen Miktar",
                             "${yuklenenMiktar.toString()} ton",
                           ),
 
@@ -84,7 +97,7 @@ class SonucPage extends StatelessWidget {
 
                           // Ödenen tutar
                           _buildDetailRow(
-                            "Ödenen Tutar:",
+                            "Ödenen Tutar",
                             "${tutar.toStringAsFixed(0)} TL",
                           ),
 
@@ -92,24 +105,15 @@ class SonucPage extends StatelessWidget {
 
                           // Önceki bakiye
                           _buildDetailRow(
-                            "Önceki Bakiye:",
+                            "Önceki Bakiye",
                             "${(cardData.mainCredit ?? 0.0).toStringAsFixed(2)} TL/m³",
-                          ),
-
-                          const SizedBox(height: 12),
-
-                          // Yeni toplam bakiye
-                          _buildDetailRow(
-                            "Yeni Bakiye:",
-                            "${yeniToplamBakiye.toStringAsFixed(2)} TL/m³",
-                            isHighlighted: true,
                           ),
 
                           const SizedBox(height: 12),
 
                           // Tarih/Saat
                           _buildDetailRow(
-                            "İşlem Tarihi:",
+                            "İşlem Tarihi",
                             _getCurrentDateTime(),
                           ),
 
@@ -121,7 +125,7 @@ class SonucPage extends StatelessWidget {
                             Column(
                               children: [
                                 _buildDetailRow(
-                                  "Müşteri:",
+                                  "Müşteri",
                                   cardData.customerName!,
                                 ),
                                 const SizedBox(height: 12),
@@ -132,7 +136,7 @@ class SonucPage extends StatelessWidget {
                           if (cardData.cardSeriNo != null &&
                               cardData.cardSeriNo!.isNotEmpty)
                             _buildDetailRow(
-                              "Kart Seri No:",
+                              "Kart Seri No",
                               cardData.cardSeriNo!,
                             ),
                         ],
@@ -146,25 +150,17 @@ class SonucPage extends StatelessWidget {
                       margin: EdgeInsets.symmetric(horizontal: width * 0.08),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.blue[50],
+                        color: Colors.green[50],
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.blue[200]!),
+                        border: Border.all(color: Color(0xFF10B981)),
                       ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.info_outline, color: Colors.blue[700]),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              "Su yükleme işlemi başarıyla tamamlandı. Kartınızı güvenli bir yerde saklayın.",
-                              style: TextStyle(
-                                color: Colors.blue[700],
-                                fontSize: 14,
-                              ),
-                            ),
+                      child:
+                          // Yeni toplam bakiye
+                          _buildDetailRow(
+                            "Yeni Bakiye",
+                            "${yeniToplamBakiye.toStringAsFixed(2)} TL/m³",
+                            isHighlighted: true,
                           ),
-                        ],
-                      ),
                     ),
 
                     SizedBox(height: height * 0.02),
@@ -189,7 +185,7 @@ class SonucPage extends StatelessWidget {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromRGBO(96, 190, 244, 1.0),
+                    backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -222,7 +218,7 @@ class SonucPage extends StatelessWidget {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: isHighlighted ? 18 : 16,
-            color: isHighlighted ? Colors.green[700] : Colors.black,
+            color: isHighlighted ? Colors.green : Colors.black,
           ),
         ),
         Flexible(
@@ -231,7 +227,7 @@ class SonucPage extends StatelessWidget {
             style: TextStyle(
               fontWeight: isHighlighted ? FontWeight.bold : FontWeight.w400,
               fontSize: isHighlighted ? 18 : 16,
-              color: isHighlighted ? Colors.green[700] : Colors.black,
+              color: isHighlighted ? Colors.green : Colors.black,
             ),
             textAlign: TextAlign.end,
             overflow: TextOverflow.ellipsis,

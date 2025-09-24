@@ -222,12 +222,12 @@ class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
           "Miktar Girişi",
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 26,
+            fontSize: 24,
             color: Colors.white,
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.blue,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
@@ -238,206 +238,99 @@ class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(height: height * 0.02),
-                    // Miktar seçim alanı
-                    GestureDetector(
-                      onTap: _showTonDialog,
-                      child: Container(
-                        width: width * 0.9,
-                        height: height * 0.25,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          color: const Color.fromRGBO(
-                            96,
-                            190,
-                            244,
-                            1.0,
-                          ).withOpacity(0.2),
-                          border: Border.all(
-                            color: const Color.fromRGBO(
-                              96,
-                              190,
-                              244,
-                              1.0,
-                            ).withOpacity(0.5),
-                            width: 1,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: width * 0.04),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(height: 16),
+                      // Miktar seçim alanı
+                      GestureDetector(
+                        onTap: _showTonDialog,
+                        child: Container(
+                          width: width * 0.9,
+                          height: height * 0.25,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.blue.withOpacity(0.2),
+                            border: Border.all(
+                              color: Colors.blue.withOpacity(0.5),
+                            ),
                           ),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: width * 0.04,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                tonMiktari > 0
-                                    ? "${tonMiktari.toString()} ton seçildi"
-                                    : "Kaç ton yüklemek istiyorsunuz?",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontWeight: tonMiktari > 0
-                                      ? FontWeight.bold
-                                      : FontWeight.w400,
-                                  fontSize: 28,
-                                  color: tonMiktari > 0
-                                      ? const Color.fromRGBO(96, 190, 244, 1.0)
-                                      : Colors.black87,
-                                ),
-                              ),
-                              if (tonMiktari > 0)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Text(
-                                    "Değiştirmek için tıklayın",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.grey[600],
-                                    ),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: width * 0.04,
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  tonMiktari > 0
+                                      ? "${tonMiktari.toString()} ton seçildi"
+                                      : "Kaç ton yüklemek istiyorsunuz?",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontWeight: tonMiktari > 0
+                                        ? FontWeight.bold
+                                        : FontWeight.w400,
+                                    fontSize: 28,
+                                    color: tonMiktari > 0
+                                        ? Colors.blue
+                                        : Colors.black87,
                                   ),
                                 ),
-                            ],
+                                if (tonMiktari > 0)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: Text(
+                                      "Değiştirmek için tıklayın",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
 
-                    SizedBox(height: height * 0.04),
-                    // Mevcut bakiye göstergesi
-                    _buildInfoCard(
-                      title: "MEVCUT BAKİYE",
-                      value:
-                          "${widget.cardData.mainCredit?.toStringAsFixed(2) ?? "0.00"} TL/m³",
-                      icon: Icons.numbers,
-                      iconColor: const Color(0xFF10B981),
-                    ),
-
-                    _buildInfoCard(
-                      title: "ÖDENECEK TUTAR",
-                      value: "${tutar.toStringAsFixed(0)} TL/m³",
-                      icon: Icons.person_rounded,
-                      iconColor: const Color(0xFF8B5CF6),
-                    ),
-
-                    _buildInfoCard(
-                      title: "YÜKLEME SONRASI BAKİYE",
-                      value:
-                          "${widget.cardData.mainCredit?.toStringAsFixed(2) ?? "0.00"} TL/m³",
-                      icon: Icons.account_balance_wallet_rounded,
-                      iconColor: const Color(0xFFF59E0B),
-                    ),
-                    Container(
-                      margin: EdgeInsets.symmetric(horizontal: width * 0.04),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.green[50],
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.green[200]!),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Mevcut Bakiye:",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.green[700],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
+                      SizedBox(height: 16),
+                      // Mevcut bakiye göstergesi
+                      _buildInfoCard(
+                        title: "MEVCUT BAKİYE",
+                        value:
                             "${widget.cardData.mainCredit?.toStringAsFixed(2) ?? "0.00"} TL/m³",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green[700],
-                            ),
-                          ),
-                        ],
+                        icon: Icons.payment_rounded,
+                        iconColor: const Color(0xFF10B981),
                       ),
-                    ),
 
-                    SizedBox(height: height * 0.02),
-                    // Mevcut bakiye göstergesi
-                    Container(
-                      margin: EdgeInsets.symmetric(horizontal: width * 0.04),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.red[200]!),
+                      _buildInfoCard(
+                        title: "ÖDENECEK TUTAR",
+                        value: "${tutar.toStringAsFixed(0)} TL/m³",
+                        icon: Icons.receipt_long_rounded,
+                        iconColor: const Color(0xFF8B5CF6),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Tutar:",
-                            style: TextStyle(
-                              color: Colors.red[700],
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
-                            "${tutar.toStringAsFixed(0)} TL/m³",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.red[700],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
 
-                    SizedBox(height: height * 0.02),
-
-                    // Yüklendikten sonra toplam bakiye tahmini
-                    if (tonMiktari > 0)
-                      Container(
-                        margin: EdgeInsets.symmetric(horizontal: width * 0.04),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.blue[50],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.blue[200]!),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Yükleme Sonrası:",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.blue[700],
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              "${((widget.cardData.mainCredit ?? 0.0) + tutar).toStringAsFixed(2)} TL/m³",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue[700],
-                              ),
-                            ),
-                          ],
-                        ),
+                      _buildInfoCard(
+                        title: "YÜKLEME SONRASI BAKİYE",
+                        value:
+                            "${((widget.cardData.mainCredit ?? 0.0) + tutar).toStringAsFixed(2)} TL/m³",
+                        icon: Icons.shopping_cart_checkout_rounded,
+                        iconColor: const Color(0xFFF59E0B),
                       ),
-                    SizedBox(height: height * 0.04),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
             keyboardOpen
                 ? const SizedBox()
                 : CustomButton(
-                    buttonText: "Ödeme Yap",
-                    buttonColor: Colors.black,
+                    buttonText: "Ödeme Geç",
+                    buttonColor: Colors.blue,
                     buttonOnTap: () {
                       if (tutar > 0) {
                         Navigator.push(

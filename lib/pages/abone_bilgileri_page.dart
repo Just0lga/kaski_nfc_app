@@ -115,7 +115,7 @@ class _AboneBilgileriPageState extends ConsumerState<AboneBilgileriPage> {
           "Abone Bilgileri",
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 26,
+            fontSize: 24,
             color: Colors.white,
           ),
         ),

@@ -18,12 +18,28 @@ class OdemeKontroluPage extends StatefulWidget {
   State<OdemeKontroluPage> createState() => _OdemeKontroluPageState();
 }
 
-class _OdemeKontroluPageState extends State<OdemeKontroluPage> {
+class _OdemeKontroluPageState extends State<OdemeKontroluPage>
+    with TickerProviderStateMixin {
+  @override
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+
   @override
   void initState() {
     print("xxx OdemeKontroluPage");
     super.initState();
-    // Ödeme işlemi simülasyonu - 2 saniye sonra karta yükleme sayfasına geç
+
+    // Animasyon kontrolcüsü ekle
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _animationController.repeat(reverse: true);
+
+    // Ödeme işlemi simülasyonu - 4 saniye sonra karta yükleme sayfasına geç
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         Navigator.pushReplacement(
@@ -41,24 +57,42 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage> {
   }
 
   @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(96, 190, 244, 1.0),
+      backgroundColor: Colors.blue,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircleAvatar(
-              backgroundColor: const Color.fromRGBO(235, 254, 254, 1.0),
-              radius: width * 0.2,
-              child: const Icon(
-                Icons.credit_card,
-                color: Color.fromRGBO(163, 221, 253, 1),
-                size: 100,
-              ),
+            AnimatedBuilder(
+              animation: _scaleAnimation,
+              builder: (context, child) {
+                return Transform.scale(
+                  scale: _scaleAnimation.value,
+                  child: Container(
+                    width: width * 0.4,
+                    height: width * 0.4,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.credit_card,
+                      size: width * 0.2,
+                      color: Colors.white,
+                    ),
+                  ),
+                );
+              },
             ),
             SizedBox(height: height * 0.04),
 
@@ -66,7 +100,7 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage> {
               "Ödeme yapılıyor, lütfen bekleyiniz...",
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Color.fromRGBO(235, 254, 254, 1.0),
+                color: Colors.white,
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
               ),
@@ -80,8 +114,7 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withOpacity(0.2)),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
                 children: [
@@ -89,8 +122,8 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        "Miktar:",
-                        style: TextStyle(color: Colors.white70, fontSize: 16),
+                        "Miktar",
+                        style: TextStyle(color: Colors.white, fontSize: 16),
                       ),
                       Text(
                         "${widget.tonMiktari} ton",
@@ -107,8 +140,8 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        "Tutar:",
-                        style: TextStyle(color: Colors.white70, fontSize: 16),
+                        "Tutar",
+                        style: TextStyle(color: Colors.white, fontSize: 16),
                       ),
                       Text(
                         "${widget.tutar.toStringAsFixed(0)} TL",
@@ -129,7 +162,7 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: width * 0.15),
               child: const LinearProgressIndicator(
-                backgroundColor: Color.fromRGBO(68, 95, 116, 1),
+                backgroundColor: Colors.blue,
                 color: Color.fromRGBO(235, 254, 254, 1.0),
               ),
             ),
@@ -138,10 +171,7 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage> {
 
             const Text(
               "Banka ile bağlantı kuruluyor...",
-              style: TextStyle(
-                color: Color.fromRGBO(235, 254, 254, 0.8),
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.white, fontSize: 14),
             ),
           ],
         ),

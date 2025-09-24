@@ -23,15 +23,28 @@ class KartaYukleme extends ConsumerStatefulWidget {
   ConsumerState<KartaYukleme> createState() => _KartaYuklemeState();
 }
 
-class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
+class _KartaYuklemeState extends ConsumerState<KartaYukleme>
+    with TickerProviderStateMixin {
   bool _writeStarted = false;
   bool _isNavigating = false;
   int _retryCount = 0;
   bool _cardValidated = false;
-
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
   @override
   void initState() {
     super.initState();
+
+    // Animasyon kontrolcüsü ekle
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _animationController.repeat(reverse: true);
+
     print("🏁 KartaYukleme initState");
     print("📊 Card data: ${widget.cardData}");
     print("💰 Amount: ${widget.tutar}");
@@ -150,6 +163,12 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
         (route) => false,
       );
     }
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -364,25 +383,7 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
 
   Widget _buildMainScreen(double height, double width, NFCState nfcState) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(96, 190, 244, 1.0),
-      appBar: AppBar(
-        title: const Text(
-          "Karta Yükleme",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 30,
-            color: Colors.white,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.home, color: Colors.white),
-          onPressed: _goBackToStartPage,
-          tooltip: 'Ana Sayfa',
-        ),
-      ),
+      backgroundColor: Colors.blue,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Container(
@@ -391,14 +392,26 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // NFC ikonu
-                CircleAvatar(
-                  backgroundColor: const Color.fromRGBO(235, 254, 254, 1.0),
-                  radius: width * 0.2,
-                  child: Icon(
-                    Icons.nfc,
-                    size: height * 0.11,
-                    color: const Color.fromRGBO(68, 95, 116, 1),
-                  ),
+                AnimatedBuilder(
+                  animation: _scaleAnimation,
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: _scaleAnimation.value,
+                      child: Container(
+                        width: width * 0.4,
+                        height: width * 0.4,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.nfc,
+                          size: width * 0.2,
+                          color: Colors.white,
+                        ),
+                      ),
+                    );
+                  },
                 ),
 
                 SizedBox(height: height * 0.04),
@@ -410,7 +423,7 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
                     _getStatusMessage(nfcState),
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      color: Color.fromRGBO(235, 254, 254, 1.0),
+                      color: Colors.white,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -424,8 +437,8 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
                 // Progress bar
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: width * 0.15),
-                  child: CircularProgressIndicator(
-                    backgroundColor: const Color.fromRGBO(68, 95, 116, 1),
+                  child: LinearProgressIndicator(
+                    backgroundColor: Colors.blue,
                     color: const Color.fromRGBO(235, 254, 254, 1.0),
                     value: _getProgressValue(nfcState),
                   ),
@@ -458,7 +471,6 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withOpacity(0.2)),
                   ),
                   child: Column(
                     children: [
@@ -466,11 +478,8 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
-                            "Yüklenecek:",
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 16,
-                            ),
+                            "Yüklenecek",
+                            style: TextStyle(color: Colors.white, fontSize: 16),
                           ),
                           Text(
                             "${widget.tonMiktari} ton",
@@ -487,11 +496,8 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
-                            "Tutar:",
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 16,
-                            ),
+                            "Tutar",
+                            style: TextStyle(color: Colors.white, fontSize: 16),
                           ),
                           Text(
                             "${widget.tutar.toStringAsFixed(0)} TL",
@@ -566,7 +572,7 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
 
   String _getStatusMessage(NFCState nfcState) {
     if (!_writeStarted) {
-      return "Hazırlanıyor...";
+      return "Karta yükleniyor...";
     } else if (!_cardValidated && nfcState.isLoading) {
       return "Kart kontrol ediliyor...";
     } else if (_cardValidated &&
@@ -624,22 +630,10 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
     final isReadAgainError = nfcState.message.toLowerCase().contains('again');
 
     return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width * 0.08,
-      ),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.orange.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.orange.withOpacity(0.3)),
-      ),
+      margin: EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
       child: Column(
         children: [
-          Icon(
-            isReadAgainError ? Icons.nfc : Icons.refresh,
-            color: Colors.white,
-            size: 24,
-          ),
           const SizedBox(height: 8),
           Text(
             isReadAgainError
@@ -665,7 +659,7 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
-                foregroundColor: const Color.fromRGBO(163, 221, 253, 1),
+                foregroundColor: Colors.blue,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 8,
@@ -685,11 +679,5 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    print('🧹 KartaYukleme dispose called');
-    super.dispose();
   }
 }

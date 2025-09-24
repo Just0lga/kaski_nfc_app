@@ -108,7 +108,7 @@ class _StartPageState extends ConsumerState<StartPage>
     }
 
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(96, 190, 244, 1.0),
+      backgroundColor: Colors.blue,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -178,9 +178,8 @@ class _StartPageState extends ConsumerState<StartPage>
                 margin: const EdgeInsets.only(top: 20, left: 20, right: 20),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.white.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.withOpacity(0.3)),
                 ),
                 child: Column(
                   children: [
@@ -200,12 +199,7 @@ class _StartPageState extends ConsumerState<StartPage>
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        foregroundColor: const Color.fromRGBO(
-                          96,
-                          190,
-                          244,
-                          1.0,
-                        ),
+                        foregroundColor: Colors.blue,
                       ),
                       child: const Text("Tekrar Dene"),
                     ),

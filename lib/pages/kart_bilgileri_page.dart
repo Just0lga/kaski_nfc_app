@@ -83,7 +83,7 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
   @override
   Widget build(BuildContext context) {
     final keyboardOpen = isKeyboardVisible(context);
-    const borderColor = Color.fromRGBO(96, 190, 244, 1.0);
+    const borderColor = Colors.blue;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -94,14 +94,14 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 24,
-            color: Colors.black,
+            color: Colors.white,
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.blue,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -115,7 +115,7 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 12.0),
                 child: Column(
                   children: [
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 16),
 
                     // Credit Card Widget
                     CreditCardWidget(
@@ -369,18 +369,24 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
-              margin: const EdgeInsets.symmetric(horizontal: 12),
+              margin: const EdgeInsets.symmetric(horizontal: 8),
               decoration: BoxDecoration(
-                color: Colors.grey[50],
+                color: Colors.blue.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[200]!),
+                border: Border.all(color: Colors.blue.withOpacity(0.5)),
               ),
               child: Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text("Miktar:", style: TextStyle(fontSize: 14)),
+                      const Text(
+                        "Miktar",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       Text(
                         "${widget.tonMiktari} ton",
                         style: const TextStyle(
@@ -395,8 +401,9 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        "Ödenecek Tutar:",
+                        "Ödenecek Tutar",
                         style: TextStyle(
+                          color: Colors.blue,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
