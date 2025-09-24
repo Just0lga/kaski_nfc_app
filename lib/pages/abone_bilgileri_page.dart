@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // Riverpod import ekle
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kaski_nfc_app/pages/miktar_girisi_page.dart';
 import 'package:kaski_nfc_app/pages/start_page.dart';
 import 'package:kaski_nfc_app/widgets/custom_button.dart';
 import '../models/consumer_card_dto.dart';
-import '../providers/nfc_provider.dart'; // NFC provider import ekle
+import '../providers/nfc_provider.dart';
 
 class AboneBilgileriPage extends ConsumerStatefulWidget {
-  // ConsumerStatefulWidget'a değiştir
   final ConsumerCardDTO cardData;
 
   const AboneBilgileriPage({super.key, required this.cardData});
 
   @override
-  ConsumerState<AboneBilgileriPage> createState() => _AboneBilgileriPageState(); // ConsumerState'e değiştir
+  ConsumerState<AboneBilgileriPage> createState() => _AboneBilgileriPageState();
 }
 
 class _AboneBilgileriPageState extends ConsumerState<AboneBilgileriPage> {
@@ -24,18 +23,83 @@ class _AboneBilgileriPageState extends ConsumerState<AboneBilgileriPage> {
   }
 
   void _returnToStartPage() {
-    // NFC provider'ı tamamen sıfırla
     final nfcNotifier = ref.read(nfcProvider.notifier);
 
     print("🔄 Resetting NFC provider and returning to start page");
 
-    // Tüm durumları sıfırla
     nfcNotifier.resetToInitialState();
 
-    // Ana sayfaya geri dön ve tüm sayfa geçmişini temizle
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => const StartPage()),
       (route) => false,
+    );
+  }
+
+  Widget _buildInfoCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color iconColor,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.white, Colors.grey.shade50],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            spreadRadius: 0,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: Colors.grey.shade200, width: 1),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: iconColor, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                    color: Colors.black87,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -49,210 +113,126 @@ class _AboneBilgileriPageState extends ConsumerState<AboneBilgileriPage> {
       appBar: AppBar(
         title: const Text(
           "Abone Bilgileri",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 26,
+            color: Colors.white,
+          ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.blue,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.home, color: Colors.black),
-          onPressed: _returnToStartPage, // Yeni metodu kullan
+          icon: const Icon(Icons.home, color: Colors.white),
+          onPressed: _returnToStartPage,
           tooltip: 'Ana Sayfa',
         ),
       ),
-      body: Center(
-        child: Column(
-          children: [
-            Expanded(
+      body: Column(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: width * 0.04),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Kart Seri No (Abone No olarak kullan)
-                  Padding(
-                    padding: EdgeInsets.only(left: width * 0.08),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Abone No: ",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22,
-                          ),
-                        ),
-                        Flexible(
-                          child: Text(
-                            widget.cardData.cardSeriNo ?? "Bilinmiyor",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 22,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: height * 0.02),
-
-                  // Müşteri Adı
-                  Padding(
-                    padding: EdgeInsets.only(left: width * 0.08),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "İsim: ",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22,
-                          ),
-                        ),
-                        Flexible(
-                          child: Text(
-                            widget.cardData.customerName ?? "Bilinmiyor",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 22,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: height * 0.02),
-
-                  // Mevcut Bakiye (Ana Kredi)
-                  Padding(
-                    padding: EdgeInsets.only(left: width * 0.08),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Mevcut Bakiye: ",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22,
-                          ),
-                        ),
-                        Flexible(
-                          child: Text(
-                            "${widget.cardData.mainCredit?.toStringAsFixed(2) ?? "0.00"} TL/m³",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 22,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  SizedBox(height: height * 0.04),
-
-                  // Ek bilgiler kartı
+                  SizedBox(height: 16),
+                  // Header Card
                   Container(
-                    margin: EdgeInsets.symmetric(horizontal: width * 0.08),
-                    padding: const EdgeInsets.all(16),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey[200]!),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF60BEF4), Color(0xFF2563EB)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF60BEF4).withOpacity(0.3),
+                          spreadRadius: 0,
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                     ),
                     child: Column(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              "Müşteri ID:",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Flexible(
-                              child: Text(
-                                widget.cardData.customerId ?? "N/A",
-                                style: const TextStyle(fontSize: 16),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(
+                            Icons.credit_card_rounded,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          "Kart Bilgileri",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                          ),
                         ),
                         const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              "Kart Durumu:",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.green[100],
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                widget.cardData.cardStatus ?? "Aktif",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.green[700],
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (widget.cardData.reserveCredit != null &&
-                            widget.cardData.reserveCredit! > 0) ...[
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                "Rezerv Bakiye:",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Text(
-                                "${widget.cardData.reserveCredit!.toStringAsFixed(2)} TL",
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ],
+                        Text(
+                          "Aşağıda kartınıza ait detayları görüntüleyebilirsiniz",
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
                           ),
-                        ],
+                          textAlign: TextAlign.center,
+                        ),
                       ],
                     ),
+                  ),
+                  SizedBox(height: 16),
+                  _buildInfoCard(
+                    title: "ABONE NO",
+                    value: widget.cardData.cardSeriNo ?? "Bilinmiyor",
+                    icon: Icons.numbers,
+                    iconColor: const Color(0xFF10B981),
+                  ),
+
+                  _buildInfoCard(
+                    title: "İSİM",
+                    value: widget.cardData.customerName ?? "Bilinmiyor",
+                    icon: Icons.person_rounded,
+                    iconColor: const Color(0xFF8B5CF6),
+                  ),
+
+                  _buildInfoCard(
+                    title: "MEVCUT BAKİYE",
+                    value:
+                        "${widget.cardData.mainCredit?.toStringAsFixed(2) ?? "0.00"} TL/m³",
+                    icon: Icons.account_balance_wallet_rounded,
+                    iconColor: const Color(0xFFF59E0B),
                   ),
                 ],
               ),
             ),
-            CustomButton(
-              buttonText: "Devam et",
-              buttonColor: const Color.fromRGBO(96, 190, 244, 1.0),
-              buttonOnTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        MiktarGirisiPage(cardData: widget.cardData),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
+          ),
+          CustomButton(
+            buttonText: "Devam et",
+            buttonColor: Colors.blue,
+            buttonOnTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      MiktarGirisiPage(cardData: widget.cardData),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }

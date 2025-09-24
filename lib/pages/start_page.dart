@@ -14,7 +14,7 @@ class _StartPageState extends ConsumerState<StartPage>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
-  bool _hasNavigated = false; // Navigation kontrolü için
+  bool _hasNavigated = false;
 
   @override
   void initState() {
@@ -75,7 +75,6 @@ class _StartPageState extends ConsumerState<StartPage>
 
   @override
   Widget build(BuildContext context) {
-    double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
 
     // ref.watch ile state'i dinle

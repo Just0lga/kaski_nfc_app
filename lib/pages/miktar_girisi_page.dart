@@ -140,6 +140,74 @@ class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
     );
   }
 
+  Widget _buildInfoCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color iconColor,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.white, Colors.grey.shade50],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            spreadRadius: 0,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: Colors.grey.shade200, width: 1),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: iconColor, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                    color: Colors.black87,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
@@ -152,12 +220,16 @@ class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
       appBar: AppBar(
         title: const Text(
           "Miktar Girişi",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 26,
+            color: Colors.white,
+          ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.black,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -169,39 +241,7 @@ class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Mevcut bakiye göstergesi
-                    Container(
-                      margin: EdgeInsets.symmetric(horizontal: width * 0.08),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.green[50],
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.green[200]!),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Mevcut Bakiye:",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
-                            "${widget.cardData.mainCredit?.toStringAsFixed(2) ?? "0.00"} TL/m³",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green[700],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    SizedBox(height: height * 0.04),
-
+                    SizedBox(height: height * 0.02),
                     // Miktar seçim alanı
                     GestureDetector(
                       onTap: _showTonDialog,
@@ -267,12 +307,90 @@ class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
                     ),
 
                     SizedBox(height: height * 0.04),
+                    // Mevcut bakiye göstergesi
+                    _buildInfoCard(
+                      title: "MEVCUT BAKİYE",
+                      value:
+                          "${widget.cardData.mainCredit?.toStringAsFixed(2) ?? "0.00"} TL/m³",
+                      icon: Icons.numbers,
+                      iconColor: const Color(0xFF10B981),
+                    ),
 
-                    Text(
-                      "Tutar: ${tutar.toStringAsFixed(0)} TL",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 30,
+                    _buildInfoCard(
+                      title: "ÖDENECEK TUTAR",
+                      value: "${tutar.toStringAsFixed(0)} TL/m³",
+                      icon: Icons.person_rounded,
+                      iconColor: const Color(0xFF8B5CF6),
+                    ),
+
+                    _buildInfoCard(
+                      title: "YÜKLEME SONRASI BAKİYE",
+                      value:
+                          "${widget.cardData.mainCredit?.toStringAsFixed(2) ?? "0.00"} TL/m³",
+                      icon: Icons.account_balance_wallet_rounded,
+                      iconColor: const Color(0xFFF59E0B),
+                    ),
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: width * 0.04),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.green[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.green[200]!),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Mevcut Bakiye:",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.green[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            "${widget.cardData.mainCredit?.toStringAsFixed(2) ?? "0.00"} TL/m³",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green[700],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: height * 0.02),
+                    // Mevcut bakiye göstergesi
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: width * 0.04),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.red[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.red[200]!),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Tutar:",
+                            style: TextStyle(
+                              color: Colors.red[700],
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            "${tutar.toStringAsFixed(0)} TL/m³",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red[700],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
 
@@ -281,24 +399,35 @@ class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
                     // Yüklendikten sonra toplam bakiye tahmini
                     if (tonMiktari > 0)
                       Container(
-                        margin: EdgeInsets.symmetric(horizontal: width * 0.08),
-                        padding: const EdgeInsets.all(12),
+                        margin: EdgeInsets.symmetric(horizontal: width * 0.04),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.blue[50],
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.blue[200]!),
                         ),
-                        child: Text(
-                          "Yükleme sonrası tahmini bakiye: ${((widget.cardData.mainCredit ?? 0.0) + tutar).toStringAsFixed(2)} TL/m³",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.blue[700],
-                            fontWeight: FontWeight.w500,
-                          ),
-                          textAlign: TextAlign.center,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Yükleme Sonrası:",
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.blue[700],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              "${((widget.cardData.mainCredit ?? 0.0) + tutar).toStringAsFixed(2)} TL/m³",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue[700],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-
                     SizedBox(height: height * 0.04),
                   ],
                 ),
@@ -308,7 +437,7 @@ class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
                 ? const SizedBox()
                 : CustomButton(
                     buttonText: "Ödeme Yap",
-                    buttonColor: const Color.fromRGBO(238, 145, 32, 1.0),
+                    buttonColor: Colors.black,
                     buttonOnTap: () {
                       if (tutar > 0) {
                         Navigator.push(

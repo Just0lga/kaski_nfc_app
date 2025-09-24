@@ -364,21 +364,21 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
 
   Widget _buildMainScreen(double height, double width, NFCState nfcState) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(163, 221, 253, 1),
+      backgroundColor: const Color.fromRGBO(96, 190, 244, 1.0),
       appBar: AppBar(
         title: const Text(
           "Karta Yükleme",
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 30,
-            color: Color.fromRGBO(68, 95, 116, 1),
+            color: Colors.white,
           ),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.home, color: Color.fromRGBO(68, 95, 116, 1)),
+          icon: const Icon(Icons.home, color: Colors.white),
           onPressed: _goBackToStartPage,
           tooltip: 'Ana Sayfa',
         ),
@@ -424,7 +424,7 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
                 // Progress bar
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: width * 0.15),
-                  child: LinearProgressIndicator(
+                  child: CircularProgressIndicator(
                     backgroundColor: const Color.fromRGBO(68, 95, 116, 1),
                     color: const Color.fromRGBO(235, 254, 254, 1.0),
                     value: _getProgressValue(nfcState),
@@ -601,17 +601,10 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme> {
   }
 
   double? _getProgressValue(NFCState nfcState) {
-    if (!_writeStarted) {
-      return 0.1;
-    } else if (!_cardValidated && nfcState.isLoading) {
-      return 0.3; // Kart kontrol aşaması
-    } else if (_cardValidated && nfcState.writeCompleted) {
-      return 1.0;
-    } else if (_cardValidated &&
-        (nfcState.isWriteInProgress || nfcState.isLoading)) {
-      return null; // Indeterminate progress
+    if (nfcState.writeCompleted) {
+      return 1.0; // Sadece tamamlandığında %100
     } else {
-      return 0.6;
+      return null; // Diğer tüm durumlarda indeterminate (döner)
     }
   }
 

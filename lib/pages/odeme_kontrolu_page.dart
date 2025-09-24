@@ -46,7 +46,7 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage> {
     double width = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(163, 221, 253, 1),
+      backgroundColor: const Color.fromRGBO(96, 190, 244, 1.0),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
