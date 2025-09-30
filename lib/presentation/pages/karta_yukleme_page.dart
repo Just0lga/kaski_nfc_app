@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:kaski_nfc_app/pages/start_page.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:kaski_nfc_app/presentation/pages/start_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kaski_nfc_app/pages/sonuc_page.dart';
+import 'package:kaski_nfc_app/presentation/pages/sonuc_page.dart';
 import '../providers/nfc_provider.dart';
-import '../models/consumer_card_dto.dart';
-import '../models/credit_request_dto.dart';
-import '../models/enums.dart';
+import '../../data/models/consumer_card.dart';
+import '../../data/models/credit_request.dart';
+import '../../data/models/enums.dart';
 
 class KartaYukleme extends ConsumerStatefulWidget {
-  final ConsumerCardDTO cardData;
+  final ConsumerCard cardData;
   final double tonMiktari;
   final double tutar;
 
@@ -97,7 +98,7 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
     );
 
     // Kart yazma işlemi için request oluştur
-    final creditRequest = CreditRequestDTO(
+    final creditRequest = CreditRequest(
       credit: newCredit,
       reserveCreditLimit: widget.cardData.reserveCredit ?? 0.0,
       criticalCreditLimit: widget.cardData.criticalCreditLimit ?? 0.0,
@@ -400,13 +401,13 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
                       child: Container(
                         width: width * 0.4,
                         height: width * 0.4,
+                        padding: EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
-                          Icons.nfc,
-                          size: width * 0.2,
+                        child: SvgPicture.asset(
+                          "assets/nfc_logo.svg",
                           color: Colors.white,
                         ),
                       ),

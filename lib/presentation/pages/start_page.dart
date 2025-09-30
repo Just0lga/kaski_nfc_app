@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kaski_nfc_app/pages/abone_bilgileri_page.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:kaski_nfc_app/presentation/pages/abone_bilgileri_page.dart';
 import '../providers/nfc_provider.dart';
 
 class StartPage extends ConsumerStatefulWidget {
@@ -122,13 +123,13 @@ class _StartPageState extends ConsumerState<StartPage>
                   child: Container(
                     width: width * 0.4,
                     height: width * 0.4,
+                    padding: EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      Icons.nfc,
-                      size: width * 0.2,
+                    child: SvgPicture.asset(
+                      "assets/nfc_logo.svg",
                       color: Colors.white,
                     ),
                   ),

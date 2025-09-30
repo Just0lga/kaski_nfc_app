@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kaski_nfc_app/pages/miktar_girisi_page.dart';
-import 'package:kaski_nfc_app/pages/start_page.dart';
-import 'package:kaski_nfc_app/widgets/custom_button.dart';
-import '../models/consumer_card_dto.dart';
+import 'package:kaski_nfc_app/data/models/consumer_card.dart';
+import 'package:kaski_nfc_app/presentation/pages/miktar_girisi_page.dart';
+import 'package:kaski_nfc_app/presentation/pages/start_page.dart';
+import 'package:kaski_nfc_app/core/widgets/custom_button.dart';
 import '../providers/nfc_provider.dart';
 
 class AboneBilgileriPage extends ConsumerStatefulWidget {
-  final ConsumerCardDTO cardData;
+  final ConsumerCard cardData;
 
   const AboneBilgileriPage({super.key, required this.cardData});
 

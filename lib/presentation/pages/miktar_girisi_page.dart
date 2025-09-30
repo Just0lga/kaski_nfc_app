@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:kaski_nfc_app/pages/kart_bilgileri_page.dart';
-import 'package:kaski_nfc_app/widgets/custom_button.dart';
-import '../models/consumer_card_dto.dart';
+import 'package:kaski_nfc_app/presentation/pages/kart_bilgileri_page.dart';
+import 'package:kaski_nfc_app/core/widgets/custom_button.dart';
+import '../../data/models/consumer_card.dart';
 
 class MiktarGirisiPage extends StatefulWidget {
-  final ConsumerCardDTO cardData;
+  final ConsumerCard cardData;
 
   const MiktarGirisiPage({super.key, required this.cardData});
 

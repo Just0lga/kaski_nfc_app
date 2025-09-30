@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:kaski_nfc_app/pages/start_page.dart';
-import '../models/consumer_card_dto.dart';
+import 'package:kaski_nfc_app/presentation/pages/start_page.dart';
+import '../../data/models/consumer_card.dart';
 
 class SonucPage extends StatelessWidget {
-  final ConsumerCardDTO cardData;
+  final ConsumerCard cardData;
   final double yuklenenMiktar;
   final double tutar;
   final double yeniToplamBakiye;

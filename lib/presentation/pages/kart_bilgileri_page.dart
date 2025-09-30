@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
-import 'package:kaski_nfc_app/pages/odeme_kontrolu_page.dart';
-import 'package:kaski_nfc_app/widgets/custom_button.dart';
-import '../models/consumer_card_dto.dart';
+import 'package:kaski_nfc_app/presentation/pages/odeme_kontrolu_page.dart';
+import 'package:kaski_nfc_app/core/widgets/custom_button.dart';
+import '../../data/models/consumer_card.dart';
 
 class KartBilgileriPage extends StatefulWidget {
-  final ConsumerCardDTO cardData;
+  final ConsumerCard cardData;
   final double tonMiktari;
   final double tutar;
 

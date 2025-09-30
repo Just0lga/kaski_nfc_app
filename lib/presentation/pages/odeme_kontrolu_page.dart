@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:kaski_nfc_app/pages/karta_yukleme_page.dart';
-import '../models/consumer_card_dto.dart';
+import 'package:kaski_nfc_app/presentation/pages/karta_yukleme_page.dart';
+import '../../data/models/consumer_card.dart';
 
 class OdemeKontroluPage extends StatefulWidget {
-  final ConsumerCardDTO cardData;
+  final ConsumerCard cardData;
   final double tonMiktari;
   final double tutar;
 

@@ -1,13 +1,13 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'consumer_card_dto.dart';
+part of 'consumer_card.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-ConsumerCardDTO _$ConsumerCardDTOFromJson(Map<String, dynamic> json) =>
-    ConsumerCardDTO(
+_$ConsumerCardImpl _$$ConsumerCardImplFromJson(Map<String, dynamic> json) =>
+    _$ConsumerCardImpl(
       mainCredit: (json['mainCredit'] as num?)?.toDouble(),
       reserveCredit: (json['reserveCredit'] as num?)?.toDouble(),
       criticalCreditLimit: (json['criticalCreditLimit'] as num?)?.toDouble(),
@@ -22,7 +22,7 @@ ConsumerCardDTO _$ConsumerCardDTOFromJson(Map<String, dynamic> json) =>
       customerId: json['customerId'] as String?,
     );
 
-Map<String, dynamic> _$ConsumerCardDTOToJson(ConsumerCardDTO instance) =>
+Map<String, dynamic> _$$ConsumerCardImplToJson(_$ConsumerCardImpl instance) =>
     <String, dynamic>{
       'mainCredit': instance.mainCredit,
       'reserveCredit': instance.reserveCredit,

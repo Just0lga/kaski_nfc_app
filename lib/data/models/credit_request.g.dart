@@ -1,14 +1,14 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'credit_request_dto.dart';
+part of 'credit_request.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-CreditRequestDTO _$CreditRequestDTOFromJson(
+_$CreditRequestImpl _$$CreditRequestImplFromJson(
   Map<String, dynamic> json,
-) => CreditRequestDTO(
+) => _$CreditRequestImpl(
   credit: (json['credit'] as num?)?.toDouble() ?? 0.0,
   reserveCreditLimit: (json['reserveCreditLimit'] as num?)?.toDouble() ?? 0.0,
   criticalCreditLimit: (json['criticalCreditLimit'] as num?)?.toDouble() ?? 0.0,
@@ -18,7 +18,7 @@ CreditRequestDTO _$CreditRequestDTOFromJson(
   requestId: json['requestId'] as String?,
 );
 
-Map<String, dynamic> _$CreditRequestDTOToJson(CreditRequestDTO instance) =>
+Map<String, dynamic> _$$CreditRequestImplToJson(_$CreditRequestImpl instance) =>
     <String, dynamic>{
       'credit': instance.credit,
       'reserveCreditLimit': instance.reserveCreditLimit,

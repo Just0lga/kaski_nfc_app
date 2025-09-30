@@ -2,9 +2,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/consumer_card_dto.dart';
-import '../models/credit_request_dto.dart';
-import '../models/enums.dart';
+import '../../data/models/consumer_card.dart';
+import '../../data/models/credit_request.dart';
+import '../../data/models/enums.dart';
 import 'package:uuid/uuid.dart';
 
 // NFCState sınıfı
@@ -25,7 +25,7 @@ class NFCState {
 
   final bool isLoading;
   final String message;
-  final ConsumerCardDTO? cardData;
+  final ConsumerCard? cardData;
   final bool isNfcEnabled;
   final String licenseStatus;
   final String debugLog;
@@ -37,7 +37,7 @@ class NFCState {
   NFCState copyWith({
     bool? isLoading,
     String? message,
-    ConsumerCardDTO? cardData,
+    ConsumerCard? cardData,
     bool? isNfcEnabled,
     String? licenseStatus,
     String? debugLog,
@@ -203,7 +203,7 @@ class NFCNotifier extends StateNotifier<NFCState> {
           _addDebugLog('Card data converted successfully');
           print('🗺️ Safe card data map: $cardDataMap');
 
-          final cardData = ConsumerCardDTO.fromJson(cardDataMap);
+          final cardData = ConsumerCard.fromJson(cardDataMap);
 
           // İlk kart okuma ise kartın seri numarasını kaydet
           String initialCardSeriNo = state.initialCardSeriNo;
@@ -471,7 +471,7 @@ class NFCNotifier extends StateNotifier<NFCState> {
     }
   }
 
-  Future<void> writeCard(CreditRequestDTO creditRequest) async {
+  Future<void> writeCard(CreditRequest creditRequest) async {
     _lastWriteStartTime = DateTime.now();
 
     // Önce kart değişimi kontrolü yap
@@ -499,21 +499,22 @@ class NFCNotifier extends StateNotifier<NFCState> {
     );
 
     try {
-      creditRequest.requestId = _uuid.v4();
+      // ✅ RequestId ekleyerek yeni kopya oluştur (Freezed için)
+      final updatedRequest = creditRequest.copyWith(requestId: _uuid.v4());
 
-      state = state.copyWith(lastWriteRequestId: creditRequest.requestId!);
+      state = state.copyWith(lastWriteRequestId: updatedRequest.requestId!);
 
       final Map<String, dynamic> requestMap = {
-        'credit': creditRequest.credit,
-        'reserveCreditLimit': creditRequest.reserveCreditLimit,
-        'criticalCreditLimit': creditRequest.criticalCreditLimit,
-        'operationType': _getOperationTypeString(creditRequest.operationType),
-        'requestId': creditRequest.requestId,
+        'credit': updatedRequest.credit,
+        'reserveCreditLimit': updatedRequest.reserveCreditLimit,
+        'criticalCreditLimit': updatedRequest.criticalCreditLimit,
+        'operationType': _getOperationTypeString(updatedRequest.operationType),
+        'requestId': updatedRequest.requestId,
       };
 
       _addDebugLog('🚀 STARTING WRITE OPERATION');
       _addDebugLog('Request ID: ${state.lastWriteRequestId}');
-      _addDebugLog('Credit: ${creditRequest.credit}');
+      _addDebugLog('Credit: ${updatedRequest.credit}');
       _addDebugLog('Operation: ${requestMap['operationType']}');
       _addDebugLog('Card SeriNo: ${state.cardData?.cardSeriNo ?? "Unknown"}');
       _addDebugLog('Initial SeriNo: ${state.initialCardSeriNo}');
