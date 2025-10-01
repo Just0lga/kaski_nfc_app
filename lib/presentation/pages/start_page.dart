@@ -58,7 +58,7 @@ class _StartPageState extends ConsumerState<StartPage>
       print("🔛 Activating NFC and starting card read");
       nfcNotifier.toggleNFC(true);
 
-      Future.delayed(const Duration(milliseconds: 500), () {
+      Future.delayed(const Duration(milliseconds: 1000), () {
         if (mounted && !_hasNavigated) {
           print("📖 Starting card read operation");
           nfcNotifier.readCard();
