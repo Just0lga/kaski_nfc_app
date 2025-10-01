@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kaski_nfc_app/presentation/pages/main_page.dart';
 import 'package:kaski_nfc_app/presentation/pages/start_page.dart';
+import 'package:kaski_nfc_app/presentation/providers/nfc_provider.dart';
 import '../../data/models/consumer_card.dart';
 
-class SonucPage extends StatelessWidget {
+class SonucPage extends ConsumerStatefulWidget {
   final ConsumerCard cardData;
   final double yuklenenMiktar;
   final double tutar;
@@ -16,6 +18,16 @@ class SonucPage extends StatelessWidget {
     required this.tutar,
     required this.yeniToplamBakiye,
   });
+
+  @override
+  ConsumerState<SonucPage> createState() => _SonucPageState();
+}
+
+class _SonucPageState extends ConsumerState<SonucPage> {
+  void resetNFCEvents() {
+    final NFCNotifier = ref.read(nfcProvider.notifier);
+    NFCNotifier.resetToInitialState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +103,7 @@ class SonucPage extends StatelessWidget {
                           // Yüklenen miktar
                           _buildDetailRow(
                             "Yüklenen Miktar",
-                            "${yuklenenMiktar.toString()} ton",
+                            "${widget.yuklenenMiktar.toString()} ton",
                           ),
 
                           const SizedBox(height: 12),
@@ -99,7 +111,7 @@ class SonucPage extends StatelessWidget {
                           // Ödenen tutar
                           _buildDetailRow(
                             "Ödenen Tutar",
-                            "${tutar.toStringAsFixed(0)} TL",
+                            "${widget.tutar.toStringAsFixed(0)} TL",
                           ),
 
                           const SizedBox(height: 12),
@@ -107,7 +119,7 @@ class SonucPage extends StatelessWidget {
                           // Önceki bakiye
                           _buildDetailRow(
                             "Önceki Bakiye",
-                            "${(cardData.mainCredit ?? 0.0).toStringAsFixed(2)} TL/m³",
+                            "${(widget.cardData.mainCredit ?? 0.0).toStringAsFixed(2)} TL/m³",
                           ),
 
                           const SizedBox(height: 12),
@@ -121,24 +133,24 @@ class SonucPage extends StatelessWidget {
                           const SizedBox(height: 12),
 
                           // Müşteri bilgileri
-                          if (cardData.customerName != null &&
-                              cardData.customerName!.isNotEmpty)
+                          if (widget.cardData.customerName != null &&
+                              widget.cardData.customerName!.isNotEmpty)
                             Column(
                               children: [
                                 _buildDetailRow(
                                   "Müşteri",
-                                  cardData.customerName!,
+                                  widget.cardData.customerName!,
                                 ),
                                 const SizedBox(height: 12),
                               ],
                             ),
 
                           // Kart seri no
-                          if (cardData.cardSeriNo != null &&
-                              cardData.cardSeriNo!.isNotEmpty)
+                          if (widget.cardData.cardSeriNo != null &&
+                              widget.cardData.cardSeriNo!.isNotEmpty)
                             _buildDetailRow(
                               "Kart Seri No",
-                              cardData.cardSeriNo!,
+                              widget.cardData.cardSeriNo!,
                             ),
                         ],
                       ),
@@ -159,7 +171,7 @@ class SonucPage extends StatelessWidget {
                           // Yeni toplam bakiye
                           _buildDetailRow(
                             "Yeni Bakiye",
-                            "${yeniToplamBakiye.toStringAsFixed(2)} TL/m³",
+                            "${widget.yeniToplamBakiye.toStringAsFixed(2)} TL/m³",
                             isHighlighted: true,
                           ),
                     ),
@@ -177,6 +189,7 @@ class SonucPage extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
+                    resetNFCEvents();
                     // Ana sayfaya geri dön (tüm sayfaları kaldır)
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(builder: (context) => const MainPage()),

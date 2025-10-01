@@ -228,9 +228,12 @@ class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
         ),
         centerTitle: true,
         backgroundColor: Colors.blue,
+        iconTheme: IconThemeData(color: Colors.white),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: Icon(Icons.arrow_back_ios_new_rounded),
         ),
       ),
       body: Center(
@@ -287,7 +290,7 @@ class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
                                       "Değiştirmek için tıklayın",
                                       style: TextStyle(
                                         fontSize: 16,
-                                        color: Colors.grey[600],
+                                        color: Colors.blue,
                                       ),
                                     ),
                                   ),

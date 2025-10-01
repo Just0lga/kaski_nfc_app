@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kaski_nfc_app/presentation/pages/odeme_gecmisi_page.dart';
 import 'package:kaski_nfc_app/presentation/pages/start_page.dart';
 
 class MainPage extends StatefulWidget {
@@ -16,6 +17,7 @@ class _MainPageState extends State<MainPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.blue,
+        iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
         title: const Text(
           "Ana Sayfa",
@@ -46,6 +48,10 @@ class _MainPageState extends State<MainPage> {
               title: "Ödeme Geçmişi",
               icon: Icons.history,
               onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => OdemeGecmisiPage()),
+                );
                 debugPrint("Ödeme Geçmişi tıklandı");
               },
             ),

@@ -1,5 +1,6 @@
 package com.example.kaski_nfc_app
 
+import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -17,8 +18,7 @@ import com.bubuapps.baylancardcreditlibrary.Model.DTO.CreditRequestDTO
 import com.bubuapps.baylancardcreditlibrary.Model.DTO.Enums.enResultCodes
 import com.bubuapps.baylancardcreditlibrary.Model.DTO.LicenseRequest
 import com.bubuapps.baylancardcreditlibrary.Model.DTO.ReadCardRequest
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.util.UUID
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -31,6 +31,41 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
     private lateinit var eventChannel: EventChannel
     private var eventSink: EventChannel.EventSink? = null
     
+    // Singleton instance
+    companion object {
+        private var libraryInstance: BaylanCardCreditLibrary? = null
+        private var isLibraryInitialized = false
+        private var lastLicenseCheckTime = 0L
+        private const val LICENSE_CACHE_DURATION = 3600000L // 1 saat (milisaniye)
+        private var isLicenseValid = false
+        private var initializationJob: Job? = null
+        
+        // Thread-safe library instance
+        @Synchronized
+        fun getLibraryInstance(context: Context): BaylanCardCreditLibrary {
+            if (libraryInstance == null) {
+                println("🆕 Creating new BaylanCardCreditLibrary instance")
+                libraryInstance = BaylanCardCreditLibrary(context)
+            }
+            return libraryInstance!!
+        }
+        
+        // Lisans geçerliliğini kontrol et (cache'li)
+        fun isLicenseCached(): Boolean {
+            val now = System.currentTimeMillis()
+            val isCacheValid = (now - lastLicenseCheckTime) < LICENSE_CACHE_DURATION
+            println("📋 License cache check: valid=$isLicenseValid, cacheValid=$isCacheValid")
+            return isCacheValid && isLicenseValid
+        }
+        
+        // Lisans durumunu güncelle
+        fun updateLicenseStatus(valid: Boolean) {
+            isLicenseValid = valid
+            lastLicenseCheckTime = System.currentTimeMillis()
+            println("✅ License status updated: $valid at ${SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(lastLicenseCheckTime)}")
+        }
+    }
+
     private lateinit var baylanCardCreditLibrary: BaylanCardCreditLibrary
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -38,9 +73,9 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
         
         println("🏁 MainActivity: Configuring Flutter Engine")
         
-        // Initialize Baylan Library
-        baylanCardCreditLibrary = BaylanCardCreditLibrary(this)
-        println("📚 Baylan Library initialized")
+        // Singleton instance kullan
+        baylanCardCreditLibrary = getLibraryInstance(this)
+        println("📚 Baylan Library instance retrieved")
         
         // Setup Method Channel
         methodChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, METHOD_CHANNEL)
@@ -63,11 +98,170 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
             }
         })
         
-        // Initialize NFC and License
-        GlobalScope.launch {
-            println("🚀 Starting NFC activation and license check")
-            baylanCardCreditLibrary.ActivateNFCCardReader()
-            checkLicence()
+        // İlk kez mi başlatılıyor kontrol et
+        if (!isLibraryInitialized) {
+            println("🚀 First initialization - Starting NFC and License check")
+            initializeLibraryWithRetry()
+        } else {
+            println("♻️ Library already initialized - Checking cache")
+            
+            // Cache'den lisans kontrolü
+            if (isLicenseCached()) {
+                println("✅ Using cached license status")
+                sendEvent(mapOf(
+                    "type" to "licenseStatus",
+                    "message" to "License is valid (cached)",
+                    "cached" to true
+                ))
+            } else {
+                println("🔄 Cache expired - Re-checking license")
+                checkLicenceWithTimeout()
+            }
+        }
+    }
+    
+    private fun initializeLibraryWithRetry() {
+        // Önceki job varsa iptal et
+        initializationJob?.cancel()
+        
+        initializationJob = CoroutineScope(Dispatchers.IO).launch {
+            try {
+                println("🔌 Starting NFC activation...")
+                
+                // NFC aktivasyonu (timeout ile)
+                val nfcResult = withTimeoutOrNull(10000L) {
+                    baylanCardCreditLibrary.ActivateNFCCardReader()
+                }
+                
+                if (nfcResult != null) {
+                    println("✅ NFC activated: ${nfcResult.name}")
+                } else {
+                    println("⚠️ NFC activation timeout - continuing anyway")
+                }
+                
+                // Lisans kontrolü (retry ile)
+                checkLicenceWithRetry(maxRetries = 3)
+                
+                isLibraryInitialized = true
+                
+            } catch (e: Exception) {
+                println("❌ Initialization error: ${e.message}")
+                e.printStackTrace()
+                
+                // Hata durumunda da initialized olarak işaretle
+                isLibraryInitialized = true
+                
+                withContext(Dispatchers.Main) {
+                    sendEvent(mapOf(
+                        "type" to "error",
+                        "message" to "Initialization failed: ${e.message}"
+                    ))
+                }
+            }
+        }
+    }
+    
+    private suspend fun checkLicenceWithRetry(maxRetries: Int = 3) {
+        var attempts = 0
+        
+        while (attempts < maxRetries) {
+            try {
+                println("🎫 License check attempt ${attempts + 1}/$maxRetries")
+                
+                val licenseCheckResult = withTimeoutOrNull(15000L) {
+                    performLicenseCheck()
+                }
+                
+                if (licenseCheckResult == true) {
+                    println("✅ License check successful")
+                    updateLicenseStatus(true)
+                    return
+                } else if (licenseCheckResult == null) {
+                    println("⏱️ License check timeout")
+                } else {
+                    println("❌ License check failed")
+                }
+                
+            } catch (e: Exception) {
+                println("❌ License check exception: ${e.message}")
+            }
+            
+            attempts++
+            
+            if (attempts < maxRetries) {
+                val delayTime = 1000L * attempts // Exponential backoff
+                println("⏳ Waiting ${delayTime}ms before retry...")
+                delay(delayTime)
+            }
+        }
+        
+        println("❌ All license check attempts failed")
+        updateLicenseStatus(false)
+        
+        withContext(Dispatchers.Main) {
+            sendEvent(mapOf(
+                "type" to "error",
+                "message" to "License check failed after $maxRetries attempts"
+            ))
+        }
+    }
+    
+    private suspend fun performLicenseCheck(): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val checkResult = baylanCardCreditLibrary.CheckLicence()
+                
+                if (checkResult.ResultCode == enResultCodes.LicenseisValid) {
+                    println("✅ License is valid")
+                    
+                    withContext(Dispatchers.Main) {
+                        sendEvent(mapOf(
+                            "type" to "licenseStatus",
+                            "message" to "License is valid"
+                        ))
+                    }
+                    
+                    return@withContext true
+                } else {
+                    println("⚠️ License not valid, requesting new license...")
+                    
+                    val licenseRequest = LicenseRequest()
+                    licenseRequest.requestId = GetRequestId(0)
+                    licenseRequest.licenceKey = "9283ebb4-9822-46fa-bbe3-ac4a4d25b8c2"
+                    
+                    val resultModel = baylanCardCreditLibrary.GetLicense(licenseRequest)
+                    
+                    withContext(Dispatchers.Main) {
+                        sendEvent(mapOf(
+                            "type" to "licenseStatus",
+                            "message" to (resultModel.Message ?: "License obtained")
+                        ))
+                    }
+                    
+                    val isValid = resultModel.ResultCode == enResultCodes.LicenseisValid
+                    return@withContext isValid
+                }
+            } catch (e: Exception) {
+                println("❌ performLicenseCheck exception: ${e.message}")
+                return@withContext false
+            }
+        }
+    }
+    
+    private fun checkLicenceWithTimeout() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                withTimeoutOrNull(10000L) {
+                    performLicenseCheck()
+                }?.let { success ->
+                    updateLicenseStatus(success)
+                } ?: run {
+                    println("⏱️ License re-check timeout")
+                    // Timeout durumunda eski cache'i kullan
+                }
+            } catch (e: Exception) {
+                println("❌ License re-check error: ${e.message}")
+            }
         }
     }
 
@@ -77,9 +271,27 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
         when (call.method) {
             "activateNFC" -> {
                 println("🔛 Activating NFC...")
-                val resultCode = baylanCardCreditLibrary.ActivateNFCCardReader()
-                println("📱 NFC activation result: ${resultCode.name}")
-                result.success(mapOf("code" to resultCode.name))
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val resultCode = withTimeoutOrNull(8000L) {
+                            baylanCardCreditLibrary.ActivateNFCCardReader()
+                        }
+                        
+                        withContext(Dispatchers.Main) {
+                            if (resultCode != null) {
+                                println("📱 NFC activation result: ${resultCode.name}")
+                                result.success(mapOf("code" to resultCode.name))
+                            } else {
+                                println("⏱️ NFC activation timeout")
+                                result.error("TIMEOUT", "NFC activation timeout", null)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) {
+                            result.error("ERROR", "NFC activation error: ${e.message}", null)
+                        }
+                    }
+                }
             }
             
             "disableNFC" -> {
@@ -91,24 +303,38 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
             
             "getLicense" -> {
                 println("🎫 Getting license...")
-                GlobalScope.launch {
-                    val licenceKey = call.argument<String>("licenceKey") ?: ""
-                    val requestId = call.argument<String>("requestId") ?: GetRequestId(0)
-                    
-                    println("🔑 License key: ${licenceKey.substring(0, 8)}...")
-                    println("🆔 Request ID: $requestId")
-                    
-                    val licenseRequest = LicenseRequest()
-                    licenseRequest.requestId = requestId
-                    licenseRequest.licenceKey = licenceKey
-                    
-                    val licenseResult = baylanCardCreditLibrary.GetLicense(licenseRequest)
-                    
-                    Handler(Looper.getMainLooper()).post {
-                        result.success(mapOf(
-                            "resultCode" to licenseResult.ResultCode.name,
-                            "message" to (licenseResult.Message ?: "")
-                        ))
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val licenceKey = call.argument<String>("licenceKey") ?: ""
+                        val requestId = call.argument<String>("requestId") ?: GetRequestId(0)
+                        
+                        println("🔑 License key: ${licenceKey.take(8)}...")
+                        println("🆔 Request ID: $requestId")
+                        
+                        val licenseRequest = LicenseRequest()
+                        licenseRequest.requestId = requestId
+                        licenseRequest.licenceKey = licenceKey
+                        
+                        val licenseResult = withTimeoutOrNull(20000L) {
+                            baylanCardCreditLibrary.GetLicense(licenseRequest)
+                        }
+                        
+                        withContext(Dispatchers.Main) {
+                            if (licenseResult != null) {
+                                updateLicenseStatus(licenseResult.ResultCode == enResultCodes.LicenseisValid)
+                                
+                                result.success(mapOf(
+                                    "resultCode" to licenseResult.ResultCode.name,
+                                    "message" to (licenseResult.Message ?: "")
+                                ))
+                            } else {
+                                result.error("TIMEOUT", "License request timeout", null)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) {
+                            result.error("ERROR", "License error: ${e.message}", null)
+                        }
                     }
                 }
             }
@@ -230,7 +456,6 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
             try {
                 println("📤 Sending event: ${eventData["type"]}")
                 
-                // Sadece primitive type'lardan oluşan safe event data oluştur
                 val safeEventData = mutableMapOf<String, Any?>()
                 eventData.forEach { (key, value) ->
                     when (value) {
@@ -241,7 +466,6 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
                             safeEventData[key] = null
                         }
                         is Map<*, *> -> {
-                            // Map'i de safe hale getir
                             val safeMap = mutableMapOf<String, Any?>()
                             value.forEach { (k, v) ->
                                 if (k is String) {
@@ -271,7 +495,6 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
             } catch (e: Exception) {
                 println("❌ Error sending event: $e")
                 e.printStackTrace()
-                // En basit hata mesajı gönder
                 val errorEventData = mapOf(
                     "type" to "error",
                     "message" to "Event sending error: ${e.message}"
@@ -300,7 +523,6 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
         if (consumerCardDTO != null && code == ResultCode.Success) {
             println("✅ Card read successful, converting DTO to map...")
             
-            // Sadece primitive değerleri içeren safe bir map oluştur
             val safeCardData = convertConsumerCardDTOToSafeMap(consumerCardDTO)
             
             sendEvent(mapOf(
@@ -324,7 +546,6 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
         try {
             println("🔄 Converting ConsumerCardDTO to safe map...")
             
-            // Reflection ile field'ları oku
             val fields = dto::class.java.declaredFields
             println("📊 Found ${fields.size} fields in DTO")
             
@@ -345,7 +566,6 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
                     value is Boolean -> value
                     value.javaClass.isEnum -> value.toString()
                     value.javaClass.name.contains("Date") -> {
-                        // Date object'ini ISO string'e çevir
                         try {
                             val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
                             when {
@@ -357,7 +577,6 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
                         }
                     }
                     else -> {
-                        // Diğer complex object'ler için toString() kullan
                         try {
                             value.toString()
                         } catch (e: Exception) {
@@ -373,7 +592,6 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
             println("❌ Error converting DTO: $e")
             e.printStackTrace()
             
-            // Fallback: Manuel field mapping
             safeMap["mainCredit"] = safeGetDoubleValue(dto, "mainCredit")
             safeMap["reserveCredit"] = safeGetDoubleValue(dto, "reserveCredit")
             safeMap["criticalCreditLimit"] = safeGetDoubleValue(dto, "criticalCreditLimit")
@@ -434,7 +652,6 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
             "timestamp" to System.currentTimeMillis()
         ))
         
-        // Ek debug bilgisi
         when (code) {
             ResultCode.Success -> {
                 println("✅ Write operation completed successfully")
@@ -449,5 +666,27 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
                 println("ℹ️ Write result: ${code.name}")
             }
         }
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        initializationJob?.cancel()
+        println("🔚 MainActivity destroyed, initialization job cancelled")
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        println("▶️ MainActivity resumed")
+        
+        // Uygulama ön plana geldiğinde lisans durumunu kontrol et
+        if (!isLicenseCached()) {
+            println("🔄 App resumed with expired cache - checking license")
+            checkLicenceWithTimeout()
+        }
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        println("⏸️ MainActivity paused")
     }
 }

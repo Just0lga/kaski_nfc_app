@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kaski_nfc_app/data/models/consumer_card.dart';
 import 'package:kaski_nfc_app/presentation/pages/main_page.dart';
 import 'package:kaski_nfc_app/presentation/pages/miktar_girisi_page.dart';
-import 'package:kaski_nfc_app/presentation/pages/start_page.dart';
 import 'package:kaski_nfc_app/core/widgets/custom_button.dart';
 import '../providers/nfc_provider.dart';
 
@@ -106,7 +105,6 @@ class _AboneBilgileriPageState extends ConsumerState<AboneBilgileriPage> {
 
   @override
   Widget build(BuildContext context) {
-    double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
 
     return Scaffold(

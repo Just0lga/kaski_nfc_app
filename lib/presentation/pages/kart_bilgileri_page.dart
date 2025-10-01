@@ -100,9 +100,12 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
         centerTitle: true,
         backgroundColor: Colors.blue,
         elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: Icon(Icons.arrow_back_ios_new_rounded),
         ),
       ),
       body: Column(
