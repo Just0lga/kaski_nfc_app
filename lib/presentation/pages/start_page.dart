@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:kaski_nfc_app/presentation/pages/abone_bilgileri_page.dart';
+import 'package:kaski_nfc_app/presentation/pages/main_page.dart';
 import '../providers/nfc_provider.dart';
 
 class StartPage extends ConsumerStatefulWidget {
@@ -16,6 +17,19 @@ class _StartPageState extends ConsumerState<StartPage>
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   bool _hasNavigated = false;
+
+  void _returnToMainPage() {
+    final nfcNotifier = ref.read(nfcProvider.notifier);
+
+    print("🔄 Resetting NFC provider and returning to main page");
+
+    nfcNotifier.resetToInitialState();
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const MainPage()),
+      (route) => false,
+    );
+  }
 
   @override
   void initState() {
@@ -109,10 +123,21 @@ class _StartPageState extends ConsumerState<StartPage>
     }
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.blue,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+          ),
+          onPressed: _returnToMainPage,
+          tooltip: 'Ana Sayfa',
+        ),
+      ),
       backgroundColor: Colors.blue,
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Animasyonlu NFC ikonu
             AnimatedBuilder(
@@ -124,6 +149,7 @@ class _StartPageState extends ConsumerState<StartPage>
                     width: width * 0.4,
                     height: width * 0.4,
                     padding: EdgeInsets.all(16),
+                    margin: EdgeInsets.all(width * 0.08),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.1),
                       shape: BoxShape.circle,
@@ -202,7 +228,7 @@ class _StartPageState extends ConsumerState<StartPage>
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.blue,
                       ),
-                      child: const Text("Tekrar Dene"),
+                      child: const Text("Kartı Oku"),
                     ),
                   ],
                 ),
