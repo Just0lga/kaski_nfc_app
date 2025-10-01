@@ -32,24 +32,11 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
     private var eventSink: EventChannel.EventSink? = null
     
     private lateinit var baylanCardCreditLibrary: BaylanCardCreditLibrary
-    
-    // 🔥 Timeout yönetimi için yeni değişkenler
-    private var lastOperationTime: Long = 0
-    private val OPERATION_TIMEOUT = 30000L // 30 saniye
-    private var isOperationInProgress = false
-    private val timeoutHandler = Handler(Looper.getMainLooper())
-    private var timeoutRunnable: Runnable? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         
         println("🏁 MainActivity: Configuring Flutter Engine")
-        
-        // 🔥 HTTP Keep-Alive ayarlarını yapılandır (Socket timeout önleme)
-        System.setProperty("http.keepAlive", "true")
-        System.setProperty("http.keepAliveDuration", "300000") // 5 dakika
-        System.setProperty("http.maxConnections", "5")
-        println("🌐 HTTP Keep-Alive configured")
         
         // Initialize Baylan Library
         baylanCardCreditLibrary = BaylanCardCreditLibrary(this)
@@ -77,42 +64,10 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
         })
         
         // Initialize NFC and License
-        initializeNFCWithRetry()
-    }
-    
-    // 🔥 NFC'yi retry mantığıyla başlat
-    private fun initializeNFCWithRetry(retryCount: Int = 0) {
         GlobalScope.launch {
-            try {
-                println("🚀 Starting NFC activation (attempt: ${retryCount + 1})")
-                
-                // NFC'yi devre dışı bırak ve tekrar aktif et (reset için)
-                baylanCardCreditLibrary.DisapleNFCReader()
-                Thread.sleep(500) // Kısa bekleme
-                
-                val activationResult = baylanCardCreditLibrary.ActivateNFCCardReader()
-                println("📱 NFC activation result: ${activationResult.name}")
-                
-                if (activationResult == ResultCode.NFCReaderActivated) {
-                    checkLicence()
-                } else if (retryCount < 3) {
-                    // 3 kereye kadar tekrar dene
-                    Thread.sleep(1000)
-                    initializeNFCWithRetry(retryCount + 1)
-                } else {
-                    println("❌ NFC activation failed after 3 attempts")
-                    sendEvent(mapOf(
-                        "type" to "error",
-                        "message" to "NFC activation failed"
-                    ))
-                }
-            } catch (e: Exception) {
-                println("❌ NFC initialization error: $e")
-                if (retryCount < 3) {
-                    Thread.sleep(1000)
-                    initializeNFCWithRetry(retryCount + 1)
-                }
-            }
+            println("🚀 Starting NFC activation and license check")
+            baylanCardCreditLibrary.ActivateNFCCardReader()
+            checkLicence()
         }
     }
 
@@ -122,7 +77,6 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
         when (call.method) {
             "activateNFC" -> {
                 println("🔛 Activating NFC...")
-                resetOperationTimeout() // 🔥 Her işlemde timeout'u sıfırla
                 val resultCode = baylanCardCreditLibrary.ActivateNFCCardReader()
                 println("📱 NFC activation result: ${resultCode.name}")
                 result.success(mapOf("code" to resultCode.name))
@@ -130,7 +84,6 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
             
             "disableNFC" -> {
                 println("🔴 Disabling NFC...")
-                cancelOperationTimeout() // 🔥 Timeout'u iptal et
                 val resultCode = baylanCardCreditLibrary.DisapleNFCReader()
                 println("📱 NFC disable result: ${resultCode.name}")
                 result.success(mapOf("code" to resultCode.name))
@@ -138,7 +91,6 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
             
             "getLicense" -> {
                 println("🎫 Getting license...")
-                resetOperationTimeout() // 🔥 Timeout'u sıfırla
                 GlobalScope.launch {
                     val licenceKey = call.argument<String>("licenceKey") ?: ""
                     val requestId = call.argument<String>("requestId") ?: GetRequestId(0)
@@ -163,50 +115,19 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
             
             "readCard" -> {
                 println("📖 Starting card read operation...")
+                val requestId = call.argument<String>("requestId") ?: GetRequestId(1)
+                println("🆔 Read request ID: $requestId")
                 
-                // 🔥 Eğer bir işlem devam ediyorsa ve timeout olmadıysa, reddet
-                if (isOperationInProgress && !isOperationTimedOut()) {
-                    println("⚠️ Operation already in progress, rejecting new request")
-                    result.error("BUSY", "Another operation is in progress", null)
-                    return
-                }
+                val readCardRequest = ReadCardRequest()
+                readCardRequest.requestId = requestId
+                baylanCardCreditLibrary.ReadCard(readCardRequest)
                 
-                // 🔥 NFC'yi yeniden aktif et (Samsung cihazlarda sorun çözümü)
-                GlobalScope.launch {
-                    try {
-                        // Önce devre dışı bırak
-                        baylanCardCreditLibrary.DisapleNFCReader()
-                        Thread.sleep(300)
-                        
-                        // Tekrar aktif et
-                        val activationResult = baylanCardCreditLibrary.ActivateNFCCardReader()
-                        println("🔄 NFC reactivated: ${activationResult.name}")
-                        
-                        Thread.sleep(200)
-                        
-                        // Şimdi okuma işlemini başlat
-                        startReadOperation(call, result)
-                    } catch (e: Exception) {
-                        println("❌ Error reactivating NFC: $e")
-                        Handler(Looper.getMainLooper()).post {
-                            result.error("NFC_ERROR", "Failed to reactivate NFC: ${e.message}", null)
-                        }
-                    }
-                }
+                result.success(mapOf("status" to "reading_started"))
             }
             
             "writeCard" -> {
                 try {
                     println("🚀 Write card method called")
-                    
-                    // 🔥 Eğer bir işlem devam ediyorsa ve timeout olmadıysa, reddet
-                    if (isOperationInProgress && !isOperationTimedOut()) {
-                        println("⚠️ Operation already in progress, rejecting new request")
-                        result.error("BUSY", "Another operation is in progress", null)
-                        return
-                    }
-                    
-                    resetOperationTimeout() // 🔥 Timeout'u sıfırla
                     
                     val credit = call.argument<Double>("credit") ?: 0.0
                     val reserveCreditLimit = call.argument<Double>("reserveCreditLimit") ?: 0.0
@@ -240,7 +161,6 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
                     creditRequestDTO.operationType = enOperationTypeVal
                     
                     println("🎯 Starting CreditOperation with: ${creditRequestDTO.toString()}")
-                    isOperationInProgress = true
                     baylanCardCreditLibrary.CreditOperation(creditRequestDTO)
                     
                     result.success(mapOf(
@@ -252,8 +172,6 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
                 } catch (e: Exception) {
                     println("❌ Write card exception: ${e.message}")
                     e.printStackTrace()
-                    cancelOperationTimeout()
-                    isOperationInProgress = false
                     result.error("WRITE_ERROR", "Write operation failed: ${e.message}", e.toString())
                 }
             }
@@ -276,71 +194,6 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
                 result.notImplemented()
             }
         }
-    }
-    
-    // 🔥 Okuma işlemini başlat
-    private fun startReadOperation(call: io.flutter.plugin.common.MethodCall, result: MethodChannel.Result) {
-        Handler(Looper.getMainLooper()).post {
-            val requestId = call.argument<String>("requestId") ?: GetRequestId(1)
-            println("🆔 Read request ID: $requestId")
-            
-            resetOperationTimeout() // Timeout'u sıfırla
-            isOperationInProgress = true
-            
-            val readCardRequest = ReadCardRequest()
-            readCardRequest.requestId = requestId
-            baylanCardCreditLibrary.ReadCard(readCardRequest)
-            
-            result.success(mapOf("status" to "reading_started"))
-        }
-    }
-    
-    // 🔥 Timeout yönetimi metodları
-    private fun resetOperationTimeout() {
-        lastOperationTime = System.currentTimeMillis()
-        isOperationInProgress = true
-        
-        // Önceki timeout'u iptal et
-        timeoutRunnable?.let { timeoutHandler.removeCallbacks(it) }
-        
-        // Yeni timeout ayarla
-        timeoutRunnable = Runnable {
-            if (isOperationInProgress) {
-                println("⏰ Operation timeout occurred, resetting state")
-                isOperationInProgress = false
-                
-                // NFC'yi yeniden başlat
-                GlobalScope.launch {
-                    try {
-                        baylanCardCreditLibrary.DisapleNFCReader()
-                        Thread.sleep(500)
-                        baylanCardCreditLibrary.ActivateNFCCardReader()
-                        println("🔄 NFC restarted after timeout")
-                    } catch (e: Exception) {
-                        println("❌ Error restarting NFC: $e")
-                    }
-                }
-                
-                sendEvent(mapOf(
-                    "type" to "error",
-                    "message" to "Operation timeout - please try again"
-                ))
-            }
-        }
-        
-        timeoutHandler.postDelayed(timeoutRunnable!!, OPERATION_TIMEOUT)
-        println("⏱️ Timeout set for $OPERATION_TIMEOUT ms")
-    }
-    
-    private fun cancelOperationTimeout() {
-        timeoutRunnable?.let { timeoutHandler.removeCallbacks(it) }
-        isOperationInProgress = false
-        println("⏹️ Operation timeout cancelled")
-    }
-    
-    private fun isOperationTimedOut(): Boolean {
-        val timeSinceLastOp = System.currentTimeMillis() - lastOperationTime
-        return timeSinceLastOp > OPERATION_TIMEOUT
     }
     
     private fun GetRequestId(type: Int): String {
@@ -377,6 +230,7 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
             try {
                 println("📤 Sending event: ${eventData["type"]}")
                 
+                // Sadece primitive type'lardan oluşan safe event data oluştur
                 val safeEventData = mutableMapOf<String, Any?>()
                 eventData.forEach { (key, value) ->
                     when (value) {
@@ -387,6 +241,7 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
                             safeEventData[key] = null
                         }
                         is Map<*, *> -> {
+                            // Map'i de safe hale getir
                             val safeMap = mutableMapOf<String, Any?>()
                             value.forEach { (k, v) ->
                                 if (k is String) {
@@ -416,6 +271,7 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
             } catch (e: Exception) {
                 println("❌ Error sending event: $e")
                 e.printStackTrace()
+                // En basit hata mesajı gönder
                 val errorEventData = mapOf(
                     "type" to "error",
                     "message" to "Event sending error: ${e.message}"
@@ -431,9 +287,6 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
 
     override fun OnResult(tag: String?, code: ResultCode) {
         println("🔄 OnResult called - Tag: $tag, Code: ${code.name}")
-        cancelOperationTimeout() // 🔥 İşlem tamamlandı, timeout'u iptal et
-        isOperationInProgress = false
-        
         sendEvent(mapOf(
             "type" to "onResult",
             "tag" to (tag ?: ""),
@@ -443,12 +296,11 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
 
     override fun ReadCardResult(consumerCardDTO: ConsumerCardDTO?, code: ResultCode) {
         println("🔍 ReadCardResult called - Code: ${code.name}, DTO is null: ${consumerCardDTO == null}")
-        cancelOperationTimeout() // 🔥 İşlem tamamlandı, timeout'u iptal et
-        isOperationInProgress = false
         
         if (consumerCardDTO != null && code == ResultCode.Success) {
             println("✅ Card read successful, converting DTO to map...")
             
+            // Sadece primitive değerleri içeren safe bir map oluştur
             val safeCardData = convertConsumerCardDTOToSafeMap(consumerCardDTO)
             
             sendEvent(mapOf(
@@ -472,6 +324,7 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
         try {
             println("🔄 Converting ConsumerCardDTO to safe map...")
             
+            // Reflection ile field'ları oku
             val fields = dto::class.java.declaredFields
             println("📊 Found ${fields.size} fields in DTO")
             
@@ -492,6 +345,7 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
                     value is Boolean -> value
                     value.javaClass.isEnum -> value.toString()
                     value.javaClass.name.contains("Date") -> {
+                        // Date object'ini ISO string'e çevir
                         try {
                             val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
                             when {
@@ -503,6 +357,7 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
                         }
                     }
                     else -> {
+                        // Diğer complex object'ler için toString() kullan
                         try {
                             value.toString()
                         } catch (e: Exception) {
@@ -518,6 +373,7 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
             println("❌ Error converting DTO: $e")
             e.printStackTrace()
             
+            // Fallback: Manuel field mapping
             safeMap["mainCredit"] = safeGetDoubleValue(dto, "mainCredit")
             safeMap["reserveCredit"] = safeGetDoubleValue(dto, "reserveCredit")
             safeMap["criticalCreditLimit"] = safeGetDoubleValue(dto, "criticalCreditLimit")
@@ -571,8 +427,6 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
 
     override fun WriteCardResult(code: ResultCode) {
         println("📝 WriteCardResult called with code: ${code.name}")
-        cancelOperationTimeout() // 🔥 İşlem tamamlandı, timeout'u iptal et
-        isOperationInProgress = false
         
         sendEvent(mapOf(
             "type" to "writeCardResult",
@@ -580,6 +434,7 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
             "timestamp" to System.currentTimeMillis()
         ))
         
+        // Ek debug bilgisi
         when (code) {
             ResultCode.Success -> {
                 println("✅ Write operation completed successfully")
@@ -593,44 +448,6 @@ class MainActivity : FlutterActivity(), IBaylanCardCreditLibrary {
             else -> {
                 println("ℹ️ Write result: ${code.name}")
             }
-        }
-    }
-    
-    // 🔥 Activity lifecycle metodlarını override et
-    override fun onResume() {
-        super.onResume()
-        println("🔄 Activity resumed - Reactivating NFC")
-        
-        // Activity resume olduğunda NFC'yi yeniden aktif et
-        GlobalScope.launch {
-            try {
-                Thread.sleep(300)
-                baylanCardCreditLibrary.DisapleNFCReader()
-                Thread.sleep(300)
-                baylanCardCreditLibrary.ActivateNFCCardReader()
-                println("✅ NFC reactivated on resume")
-            } catch (e: Exception) {
-                println("❌ Error reactivating NFC on resume: $e")
-            }
-        }
-    }
-    
-    override fun onPause() {
-        super.onPause()
-        println("⏸️ Activity paused")
-        // Timeout'ları temizle
-        cancelOperationTimeout()
-    }
-    
-    override fun onDestroy() {
-        super.onDestroy()
-        println("🛑 Activity destroyed")
-        // Cleanup
-        timeoutHandler.removeCallbacksAndMessages(null)
-        try {
-            baylanCardCreditLibrary.DisapleNFCReader()
-        } catch (e: Exception) {
-            println("⚠️ Error disabling NFC on destroy: $e")
         }
     }
 }

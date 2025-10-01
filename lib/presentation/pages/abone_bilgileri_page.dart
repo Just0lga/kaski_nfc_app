@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kaski_nfc_app/data/models/consumer_card.dart';
+import 'package:kaski_nfc_app/presentation/pages/main_page.dart';
 import 'package:kaski_nfc_app/presentation/pages/miktar_girisi_page.dart';
 import 'package:kaski_nfc_app/presentation/pages/start_page.dart';
 import 'package:kaski_nfc_app/core/widgets/custom_button.dart';
@@ -22,15 +23,15 @@ class _AboneBilgileriPageState extends ConsumerState<AboneBilgileriPage> {
     super.initState();
   }
 
-  void _returnToStartPage() {
+  void _returnToMainPage() {
     final nfcNotifier = ref.read(nfcProvider.notifier);
 
-    print("🔄 Resetting NFC provider and returning to start page");
+    print("🔄 Resetting NFC provider and returning to main page");
 
     nfcNotifier.resetToInitialState();
 
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const StartPage()),
+      MaterialPageRoute(builder: (context) => const MainPage()),
       (route) => false,
     );
   }
@@ -123,7 +124,7 @@ class _AboneBilgileriPageState extends ConsumerState<AboneBilgileriPage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.home, color: Colors.white),
-          onPressed: _returnToStartPage,
+          onPressed: _returnToMainPage,
           tooltip: 'Ana Sayfa',
         ),
       ),

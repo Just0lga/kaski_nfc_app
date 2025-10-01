@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'presentation/pages/start_page.dart';
+import 'package:kaski_nfc_app/presentation/pages/main_page.dart';
 
 void main() {
   runApp(ProviderScope(child: const MyApp()));
@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
           selectionHandleColor: Color.fromRGBO(96, 190, 244, 1.0),
         ),
       ),
-      home: const StartPage(),
+      home: const MainPage(),
       debugShowCheckedModeBanner: false,
     );
   }

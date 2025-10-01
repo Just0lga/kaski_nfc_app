@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kaski_nfc_app/presentation/pages/main_page.dart';
 import 'package:kaski_nfc_app/presentation/pages/start_page.dart';
 import '../../data/models/consumer_card.dart';
 
@@ -178,9 +179,7 @@ class SonucPage extends StatelessWidget {
                   onPressed: () {
                     // Ana sayfaya geri dön (tüm sayfaları kaldır)
                     Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                        builder: (context) => const StartPage(),
-                      ),
+                      MaterialPageRoute(builder: (context) => const MainPage()),
                       (route) => false,
                     );
                   },
