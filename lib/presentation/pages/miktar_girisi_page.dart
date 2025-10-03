@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kaski_nfc_app/presentation/pages/kart_bilgileri_page.dart';
 import 'package:kaski_nfc_app/core/widgets/custom_button.dart';
-import '../../data/models/consumer_card.dart';
+import '../../data/models/frontend_models/consumer_card.dart';
 
 class MiktarGirisiPage extends StatefulWidget {
   final ConsumerCard cardData;

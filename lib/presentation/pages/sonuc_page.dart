@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kaski_nfc_app/presentation/pages/main_page.dart';
 import 'package:kaski_nfc_app/presentation/pages/start_page.dart';
 import 'package:kaski_nfc_app/presentation/providers/nfc_provider.dart';
-import '../../data/models/consumer_card.dart';
+import '../../data/models/frontend_models/consumer_card.dart';
 
 class SonucPage extends ConsumerStatefulWidget {
   final ConsumerCard cardData;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kaski_nfc_app/data/models/consumer_card.dart';
+import 'package:kaski_nfc_app/data/models/frontend_models/consumer_card.dart';
 import 'package:kaski_nfc_app/presentation/pages/main_page.dart';
 import 'package:kaski_nfc_app/presentation/pages/miktar_girisi_page.dart';
 import 'package:kaski_nfc_app/core/widgets/custom_button.dart';

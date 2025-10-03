@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
 import 'package:kaski_nfc_app/presentation/pages/odeme_kontrolu_page.dart';
 import 'package:kaski_nfc_app/core/widgets/custom_button.dart';
-import '../../data/models/consumer_card.dart';
+import '../../data/models/frontend_models/consumer_card.dart';
 
 class KartBilgileriPage extends StatefulWidget {
   final ConsumerCard cardData;

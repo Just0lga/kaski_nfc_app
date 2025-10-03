@@ -4,9 +4,9 @@ import 'package:kaski_nfc_app/presentation/pages/start_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kaski_nfc_app/presentation/pages/sonuc_page.dart';
 import '../providers/nfc_provider.dart';
-import '../../data/models/consumer_card.dart';
-import '../../data/models/credit_request.dart';
-import '../../data/models/enums.dart';
+import '../../data/models/frontend_models/consumer_card.dart';
+import '../../data/models/frontend_models/credit_request.dart';
+import '../../data/models/frontend_models/enums.dart';
 
 class KartaYukleme extends ConsumerStatefulWidget {
   final ConsumerCard cardData;
