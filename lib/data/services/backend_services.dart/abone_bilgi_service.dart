@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:kaski_nfc_app/core/constants/Env.dart';
-import '../models/backend_models/abone_bilgi.dart';
-import '../models/backend_models/oturum_bilgileri.dart';
+import '../../models/backend_models/abone_bilgi.dart';
+import '../../models/backend_models/oturum_bilgileri.dart';
 
 class AboneBilgiService {
   Future<AboneBilgiResponse?> getAboneBilgi({

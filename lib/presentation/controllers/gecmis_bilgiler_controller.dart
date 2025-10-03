@@ -1,5 +1,5 @@
 import 'package:kaski_nfc_app/data/models/backend_models/oturum_bilgileri.dart';
-import 'package:kaski_nfc_app/data/services/gecmis_bilgiler_service.dart';
+import 'package:kaski_nfc_app/data/services/backend_services.dart/gecmis_bilgiler_service.dart';
 
 class GecmisBilgilerController {
   final GecmisBilgilerService api = GecmisBilgilerService();

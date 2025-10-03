@@ -1,5 +1,5 @@
 import 'package:kaski_nfc_app/data/models/backend_models/oturum_bilgileri.dart';
-import 'package:kaski_nfc_app/data/services/fiyat_sorgu_service.dart';
+import 'package:kaski_nfc_app/data/services/backend_services.dart/fiyat_sorgu_service.dart';
 
 class FiyatSorguController {
   final FiyatSorguService api = FiyatSorguService();

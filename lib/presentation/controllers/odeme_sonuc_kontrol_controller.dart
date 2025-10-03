@@ -1,5 +1,5 @@
 import 'package:kaski_nfc_app/data/models/backend_models/oturum_bilgileri.dart';
-import 'package:kaski_nfc_app/data/services/odeme_sonuc_kontrol_service.dart';
+import 'package:kaski_nfc_app/data/services/backend_services.dart/odeme_sonuc_kontrol_service.dart';
 
 class OdemeSonucKontrolController {
   final OdemeSonucKontrolService api = OdemeSonucKontrolService();

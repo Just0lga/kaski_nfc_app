@@ -1,5 +1,5 @@
 import 'package:kaski_nfc_app/data/models/backend_models/oturum_bilgileri.dart';
-import 'package:kaski_nfc_app/data/services/abone_bilgi_service.dart';
+import 'package:kaski_nfc_app/data/services/backend_services.dart/abone_bilgi_service.dart';
 
 class AboneBilgiController {
   final AboneBilgiService api = AboneBilgiService();

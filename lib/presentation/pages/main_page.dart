@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kaski_nfc_app/data/services/frontend_services.dart/device_service.dart';
 import 'package:kaski_nfc_app/presentation/pages/odeme_gecmisi_page.dart';
 import 'package:kaski_nfc_app/presentation/pages/start_page.dart';
 
@@ -10,6 +11,23 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  String deviceId = "";
+  String model = "";
+
+  @override
+  void initState() {
+    super.initState();
+    loadDeviceData();
+  }
+
+  Future<void> loadDeviceData() async {
+    final data = await DeviceService.getDeviceData();
+    setState(() {
+      model = data["model"]!;
+      deviceId = data["deviceId"]!;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
@@ -32,6 +50,8 @@ class _MainPageState extends State<MainPage> {
         padding: EdgeInsets.all(width * 0.03),
         child: Column(
           children: [
+            Text(model),
+            Text(deviceId),
             HomeMenuButton(
               title: "Karta Para Yükle",
               icon: Icons.credit_card,

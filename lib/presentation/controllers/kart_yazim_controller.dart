@@ -1,5 +1,5 @@
 import 'package:kaski_nfc_app/data/models/backend_models/oturum_bilgileri.dart';
-import 'package:kaski_nfc_app/data/services/kart_yazim_service.dart';
+import 'package:kaski_nfc_app/data/services/backend_services.dart/kart_yazim_service.dart';
 
 class KartYazimController {
   final KartYazimService api = KartYazimService();

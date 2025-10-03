@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:kaski_nfc_app/core/constants/Env.dart';
-import '../models/backend_models/fiyat_sorgu.dart';
-import '../models/backend_models/oturum_bilgileri.dart';
+import '../../models/backend_models/fiyat_sorgu.dart';
+import '../../models/backend_models/oturum_bilgileri.dart';
 
 class FiyatSorguService {
   Future<FiyatSorguResponse?> getFiyatSorgu({
