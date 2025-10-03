@@ -2,9 +2,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/models/consumer_card.dart';
-import '../../data/models/credit_request.dart';
-import '../../data/models/enums.dart';
+import '../../data/models/frontend_models/consumer_card.dart';
+import '../../data/models/frontend_models/credit_request.dart';
+import '../../data/models/frontend_models/enums.dart';
 import 'package:uuid/uuid.dart';
 
 // NFCState sınıfı
