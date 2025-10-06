@@ -16,6 +16,7 @@ class ConsumerCard with _$ConsumerCard {
     String? cardStatus,
     String? customerName,
     String? customerId,
+    String? paydeskCode,
   }) = _ConsumerCard;
 
   factory ConsumerCard.fromJson(Map<String, dynamic> json) =>

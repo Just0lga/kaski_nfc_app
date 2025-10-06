@@ -194,19 +194,25 @@ class _AboneBilgileriPageState extends ConsumerState<AboneBilgileriPage> {
                   ),
                   SizedBox(height: 16),
                   _buildInfoCard(
+                    title: "Paydesk Code NO",
+                    value: widget.cardData.paydeskCode ?? "Bilinmiyor",
+                    icon: Icons.star,
+                    iconColor: Colors.red,
+                  ),
+
+                  _buildInfoCard(
                     title: "ABONE NO",
                     value: widget.cardData.cardSeriNo ?? "Bilinmiyor",
                     icon: Icons.numbers,
                     iconColor: const Color(0xFF10B981),
                   ),
 
-                  _buildInfoCard(
+                  /*_buildInfoCard(
                     title: "İSİM",
                     value: widget.cardData.customerName ?? "Bilinmiyor",
                     icon: Icons.person_rounded,
                     iconColor: const Color(0xFF8B5CF6),
-                  ),
-
+                  ),*/
                   _buildInfoCard(
                     title: "MEVCUT BAKİYE",
                     value:
