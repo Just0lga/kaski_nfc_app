@@ -309,13 +309,11 @@ class _AboneBilgileriPageState extends ConsumerState<AboneBilgileriPage> {
                         ),
                         const SizedBox(height: 16),
 
-                        Text(
-                          "Paydesk Code: ${widget.cardData.paydeskCode}" ?? "",
-                        ),
+                        Text("Paydesk Code: ${widget.cardData.paydeskCode}"),
                         _buildInfoCard(
                           title: "İSİM SOYİSİM",
                           value:
-                              "${_aboneBilgiResponse!.ad ?? ''} ${_aboneBilgiResponse!.soyad ?? ''}"
+                              "${_aboneBilgiResponse?.ad ?? 'Sunucuya Ulaşılamıyor'} ${_aboneBilgiResponse?.soyad ?? ''}"
                                   .trim()
                                   .toUpperCase(),
                           icon: Icons.person_rounded,

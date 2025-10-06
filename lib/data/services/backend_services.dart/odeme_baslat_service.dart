@@ -14,7 +14,7 @@ class OdemeBaslatService {
     double? ton,
     double? tutar,
   }) async {
-    final url = Uri.parse("${Env.apiUrl}/esayac/nfc/odemeBaslat");
+    final url = Uri.parse("${Env.apiUrl}/nfc/odemeBaslat");
 
     final request = OdemeBaslatRequest(
       oturumBilgileri: oturumBilgileri,

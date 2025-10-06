@@ -10,7 +10,7 @@ class FiyatSorguService {
     int? aboneNo,
     int? sarf,
   }) async {
-    final url = Uri.parse("${Env.apiUrl}/esayac/nfc/fiyatSorgu");
+    final url = Uri.parse("${Env.apiUrl}/nfc/fiyatSorgu");
 
     final request = FiyatSorguRequest(
       oturumBilgileri: oturumBilgileri,
