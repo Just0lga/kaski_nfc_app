@@ -1,4 +1,3 @@
 class Env {
-  static const String apiUrl =
-      "https://ekys.maraskaski.gov.tr/esayac/q/swagger-ui/#/Nfc%20Resource/post_esayac_nfc_aboneBilgi";
+  static const String apiUrl = "http://192.168.2.77:8877/esayac";
 }

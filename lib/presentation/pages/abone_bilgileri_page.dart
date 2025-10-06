@@ -47,7 +47,7 @@ class _AboneBilgileriPageState extends ConsumerState<AboneBilgileriPage> {
       // OturumBilgileri oluştur
       final oturumBilgileri = OturumBilgileri(
         oturumTarihi: DateTime.now().toIso8601String(),
-        aboneNo: int.tryParse(widget.cardData.cardSeriNo ?? '0') ?? 0,
+        aboneNo: int.tryParse(widget.cardData.customerNo ?? "") ?? 0,
         kartSeriNo: widget.cardData.cardSeriNo,
         cihazId: deviceData['deviceId'],
         cihazModel: deviceData['model'],
@@ -308,15 +308,22 @@ class _AboneBilgileriPageState extends ConsumerState<AboneBilgileriPage> {
                           ),
                         ),
                         const SizedBox(height: 16),
+
+                        Text(
+                          "Paydesk Code: ${widget.cardData.paydeskCode}" ?? "",
+                        ),
                         _buildInfoCard(
-                          title: "Paydesk Code NO",
-                          value: widget.cardData.paydeskCode ?? "Bilinmiyor",
-                          icon: Icons.star,
-                          iconColor: Colors.red,
+                          title: "İSİM SOYİSİM",
+                          value:
+                              "${_aboneBilgiResponse!.ad ?? ''} ${_aboneBilgiResponse!.soyad ?? ''}"
+                                  .trim()
+                                  .toUpperCase(),
+                          icon: Icons.person_rounded,
+                          iconColor: const Color(0xFF8B5CF6),
                         ),
                         _buildInfoCard(
                           title: "ABONE NO",
-                          value: widget.cardData.cardSeriNo ?? "Bilinmiyor",
+                          value: widget.cardData.customerNo ?? "34",
                           icon: Icons.numbers,
                           iconColor: const Color(0xFF10B981),
                         ),
@@ -325,21 +332,12 @@ class _AboneBilgileriPageState extends ConsumerState<AboneBilgileriPage> {
                             (_aboneBilgiResponse!.ad != null ||
                                 _aboneBilgiResponse!.soyad != null))
                           _buildInfoCard(
-                            title: "İSİM SOYİSİM",
+                            title: "MEVCUT BAKİYE",
                             value:
-                                "${_aboneBilgiResponse!.ad ?? ''} ${_aboneBilgiResponse!.soyad ?? ''}"
-                                    .trim()
-                                    .toUpperCase(),
-                            icon: Icons.person_rounded,
-                            iconColor: const Color(0xFF8B5CF6),
+                                "${widget.cardData.mainCredit?.toStringAsFixed(2) ?? "0.00"} TL/m³",
+                            icon: Icons.account_balance_wallet_rounded,
+                            iconColor: const Color(0xFFF59E0B),
                           ),
-                        _buildInfoCard(
-                          title: "MEVCUT BAKİYE",
-                          value:
-                              "${widget.cardData.mainCredit?.toStringAsFixed(2) ?? "0.00"} TL/m³",
-                          icon: Icons.account_balance_wallet_rounded,
-                          iconColor: const Color(0xFFF59E0B),
-                        ),
                       ],
                     ),
                   ),

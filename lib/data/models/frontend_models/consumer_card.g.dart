@@ -21,6 +21,7 @@ _$ConsumerCardImpl _$$ConsumerCardImplFromJson(Map<String, dynamic> json) =>
       customerName: json['customerName'] as String?,
       customerId: json['customerId'] as String?,
       paydeskCode: json['paydeskCode'] as String?,
+      customerNo: json['customerNo'] as String?,
     );
 
 Map<String, dynamic> _$$ConsumerCardImplToJson(_$ConsumerCardImpl instance) =>
@@ -36,4 +37,5 @@ Map<String, dynamic> _$$ConsumerCardImplToJson(_$ConsumerCardImpl instance) =>
       'customerName': instance.customerName,
       'customerId': instance.customerId,
       'paydeskCode': instance.paydeskCode,
+      'customerNo': instance.customerNo,
     };

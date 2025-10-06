@@ -32,6 +32,7 @@ mixin _$ConsumerCard {
   String? get customerName => throw _privateConstructorUsedError;
   String? get customerId => throw _privateConstructorUsedError;
   String? get paydeskCode => throw _privateConstructorUsedError;
+  String? get customerNo => throw _privateConstructorUsedError;
 
   /// Serializes this ConsumerCard to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -62,6 +63,7 @@ abstract class $ConsumerCardCopyWith<$Res> {
     String? customerName,
     String? customerId,
     String? paydeskCode,
+    String? customerNo,
   });
 }
 
@@ -91,6 +93,7 @@ class _$ConsumerCardCopyWithImpl<$Res, $Val extends ConsumerCard>
     Object? customerName = freezed,
     Object? customerId = freezed,
     Object? paydeskCode = freezed,
+    Object? customerNo = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -138,6 +141,10 @@ class _$ConsumerCardCopyWithImpl<$Res, $Val extends ConsumerCard>
                 ? _value.paydeskCode
                 : paydeskCode // ignore: cast_nullable_to_non_nullable
                       as String?,
+            customerNo: freezed == customerNo
+                ? _value.customerNo
+                : customerNo // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -165,6 +172,7 @@ abstract class _$$ConsumerCardImplCopyWith<$Res>
     String? customerName,
     String? customerId,
     String? paydeskCode,
+    String? customerNo,
   });
 }
 
@@ -193,6 +201,7 @@ class __$$ConsumerCardImplCopyWithImpl<$Res>
     Object? customerName = freezed,
     Object? customerId = freezed,
     Object? paydeskCode = freezed,
+    Object? customerNo = freezed,
   }) {
     return _then(
       _$ConsumerCardImpl(
@@ -240,6 +249,10 @@ class __$$ConsumerCardImplCopyWithImpl<$Res>
             ? _value.paydeskCode
             : paydeskCode // ignore: cast_nullable_to_non_nullable
                   as String?,
+        customerNo: freezed == customerNo
+            ? _value.customerNo
+            : customerNo // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -260,6 +273,7 @@ class _$ConsumerCardImpl implements _ConsumerCard {
     this.customerName,
     this.customerId,
     this.paydeskCode,
+    this.customerNo,
   });
 
   factory _$ConsumerCardImpl.fromJson(Map<String, dynamic> json) =>
@@ -287,10 +301,12 @@ class _$ConsumerCardImpl implements _ConsumerCard {
   final String? customerId;
   @override
   final String? paydeskCode;
+  @override
+  final String? customerNo;
 
   @override
   String toString() {
-    return 'ConsumerCard(mainCredit: $mainCredit, reserveCredit: $reserveCredit, criticalCreditLimit: $criticalCreditLimit, cardId: $cardId, cardNumber: $cardNumber, cardSeriNo: $cardSeriNo, lastTransactionDate: $lastTransactionDate, cardStatus: $cardStatus, customerName: $customerName, customerId: $customerId, paydeskCode: $paydeskCode)';
+    return 'ConsumerCard(mainCredit: $mainCredit, reserveCredit: $reserveCredit, criticalCreditLimit: $criticalCreditLimit, cardId: $cardId, cardNumber: $cardNumber, cardSeriNo: $cardSeriNo, lastTransactionDate: $lastTransactionDate, cardStatus: $cardStatus, customerName: $customerName, customerId: $customerId, paydeskCode: $paydeskCode, customerNo: $customerNo)';
   }
 
   @override
@@ -318,7 +334,9 @@ class _$ConsumerCardImpl implements _ConsumerCard {
             (identical(other.customerId, customerId) ||
                 other.customerId == customerId) &&
             (identical(other.paydeskCode, paydeskCode) ||
-                other.paydeskCode == paydeskCode));
+                other.paydeskCode == paydeskCode) &&
+            (identical(other.customerNo, customerNo) ||
+                other.customerNo == customerNo));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -336,6 +354,7 @@ class _$ConsumerCardImpl implements _ConsumerCard {
     customerName,
     customerId,
     paydeskCode,
+    customerNo,
   );
 
   /// Create a copy of ConsumerCard
@@ -365,6 +384,7 @@ abstract class _ConsumerCard implements ConsumerCard {
     final String? customerName,
     final String? customerId,
     final String? paydeskCode,
+    final String? customerNo,
   }) = _$ConsumerCardImpl;
 
   factory _ConsumerCard.fromJson(Map<String, dynamic> json) =
@@ -392,6 +412,8 @@ abstract class _ConsumerCard implements ConsumerCard {
   String? get customerId;
   @override
   String? get paydeskCode;
+  @override
+  String? get customerNo;
 
   /// Create a copy of ConsumerCard
   /// with the given fields replaced by the non-null parameter values.
