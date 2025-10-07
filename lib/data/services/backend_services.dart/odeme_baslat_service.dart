@@ -11,8 +11,7 @@ class OdemeBaslatService {
     String? islemBaslangicTarihi,
     int? paydeskKodu,
     KartBilgileri? kartBilgileri,
-    double? ton,
-    double? tutar,
+    String? odemeId,
   }) async {
     final url = Uri.parse("${Env.apiUrl}/nfc/odemeBaslat");
 
@@ -21,8 +20,7 @@ class OdemeBaslatService {
       islemBaslangicTarihi: islemBaslangicTarihi,
       paydeskKodu: paydeskKodu,
       kartBilgileri: kartBilgileri,
-      ton: ton,
-      tutar: tutar,
+      odemeId: odemeId,
     );
 
     final response = await http.post(

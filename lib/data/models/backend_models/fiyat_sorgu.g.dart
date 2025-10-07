@@ -30,6 +30,7 @@ _$FiyatSorguResponseImpl _$$FiyatSorguResponseImplFromJson(
   hata: json['hata'] as String?,
   hataAciklama: json['hataAciklama'] as String?,
   toplam: (json['toplam'] as num?)?.toDouble(),
+  odemeId: json['odemeId'] as String?,
 );
 
 Map<String, dynamic> _$$FiyatSorguResponseImplToJson(
@@ -38,4 +39,5 @@ Map<String, dynamic> _$$FiyatSorguResponseImplToJson(
   'hata': instance.hata,
   'hataAciklama': instance.hataAciklama,
   'toplam': instance.toplam,
+  'odemeId': instance.odemeId,
 };

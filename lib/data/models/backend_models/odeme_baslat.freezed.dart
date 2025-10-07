@@ -25,8 +25,7 @@ mixin _$OdemeBaslatRequest {
   String? get islemBaslangicTarihi => throw _privateConstructorUsedError;
   int? get paydeskKodu => throw _privateConstructorUsedError;
   KartBilgileri? get kartBilgileri => throw _privateConstructorUsedError;
-  double? get ton => throw _privateConstructorUsedError;
-  double? get tutar => throw _privateConstructorUsedError;
+  String? get odemeId => throw _privateConstructorUsedError;
 
   /// Serializes this OdemeBaslatRequest to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -50,8 +49,7 @@ abstract class $OdemeBaslatRequestCopyWith<$Res> {
     String? islemBaslangicTarihi,
     int? paydeskKodu,
     KartBilgileri? kartBilgileri,
-    double? ton,
-    double? tutar,
+    String? odemeId,
   });
 
   $OturumBilgileriCopyWith<$Res> get oturumBilgileri;
@@ -77,8 +75,7 @@ class _$OdemeBaslatRequestCopyWithImpl<$Res, $Val extends OdemeBaslatRequest>
     Object? islemBaslangicTarihi = freezed,
     Object? paydeskKodu = freezed,
     Object? kartBilgileri = freezed,
-    Object? ton = freezed,
-    Object? tutar = freezed,
+    Object? odemeId = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -98,14 +95,10 @@ class _$OdemeBaslatRequestCopyWithImpl<$Res, $Val extends OdemeBaslatRequest>
                 ? _value.kartBilgileri
                 : kartBilgileri // ignore: cast_nullable_to_non_nullable
                       as KartBilgileri?,
-            ton: freezed == ton
-                ? _value.ton
-                : ton // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            tutar: freezed == tutar
-                ? _value.tutar
-                : tutar // ignore: cast_nullable_to_non_nullable
-                      as double?,
+            odemeId: freezed == odemeId
+                ? _value.odemeId
+                : odemeId // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -150,8 +143,7 @@ abstract class _$$OdemeBaslatRequestImplCopyWith<$Res>
     String? islemBaslangicTarihi,
     int? paydeskKodu,
     KartBilgileri? kartBilgileri,
-    double? ton,
-    double? tutar,
+    String? odemeId,
   });
 
   @override
@@ -178,8 +170,7 @@ class __$$OdemeBaslatRequestImplCopyWithImpl<$Res>
     Object? islemBaslangicTarihi = freezed,
     Object? paydeskKodu = freezed,
     Object? kartBilgileri = freezed,
-    Object? ton = freezed,
-    Object? tutar = freezed,
+    Object? odemeId = freezed,
   }) {
     return _then(
       _$OdemeBaslatRequestImpl(
@@ -199,14 +190,10 @@ class __$$OdemeBaslatRequestImplCopyWithImpl<$Res>
             ? _value.kartBilgileri
             : kartBilgileri // ignore: cast_nullable_to_non_nullable
                   as KartBilgileri?,
-        ton: freezed == ton
-            ? _value.ton
-            : ton // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        tutar: freezed == tutar
-            ? _value.tutar
-            : tutar // ignore: cast_nullable_to_non_nullable
-                  as double?,
+        odemeId: freezed == odemeId
+            ? _value.odemeId
+            : odemeId // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -220,8 +207,7 @@ class _$OdemeBaslatRequestImpl implements _OdemeBaslatRequest {
     this.islemBaslangicTarihi,
     this.paydeskKodu,
     this.kartBilgileri,
-    this.ton,
-    this.tutar,
+    this.odemeId,
   });
 
   factory _$OdemeBaslatRequestImpl.fromJson(Map<String, dynamic> json) =>
@@ -236,13 +222,11 @@ class _$OdemeBaslatRequestImpl implements _OdemeBaslatRequest {
   @override
   final KartBilgileri? kartBilgileri;
   @override
-  final double? ton;
-  @override
-  final double? tutar;
+  final String? odemeId;
 
   @override
   String toString() {
-    return 'OdemeBaslatRequest(oturumBilgileri: $oturumBilgileri, islemBaslangicTarihi: $islemBaslangicTarihi, paydeskKodu: $paydeskKodu, kartBilgileri: $kartBilgileri, ton: $ton, tutar: $tutar)';
+    return 'OdemeBaslatRequest(oturumBilgileri: $oturumBilgileri, islemBaslangicTarihi: $islemBaslangicTarihi, paydeskKodu: $paydeskKodu, kartBilgileri: $kartBilgileri, odemeId: $odemeId)';
   }
 
   @override
@@ -258,8 +242,7 @@ class _$OdemeBaslatRequestImpl implements _OdemeBaslatRequest {
                 other.paydeskKodu == paydeskKodu) &&
             (identical(other.kartBilgileri, kartBilgileri) ||
                 other.kartBilgileri == kartBilgileri) &&
-            (identical(other.ton, ton) || other.ton == ton) &&
-            (identical(other.tutar, tutar) || other.tutar == tutar));
+            (identical(other.odemeId, odemeId) || other.odemeId == odemeId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -270,8 +253,7 @@ class _$OdemeBaslatRequestImpl implements _OdemeBaslatRequest {
     islemBaslangicTarihi,
     paydeskKodu,
     kartBilgileri,
-    ton,
-    tutar,
+    odemeId,
   );
 
   /// Create a copy of OdemeBaslatRequest
@@ -297,8 +279,7 @@ abstract class _OdemeBaslatRequest implements OdemeBaslatRequest {
     final String? islemBaslangicTarihi,
     final int? paydeskKodu,
     final KartBilgileri? kartBilgileri,
-    final double? ton,
-    final double? tutar,
+    final String? odemeId,
   }) = _$OdemeBaslatRequestImpl;
 
   factory _OdemeBaslatRequest.fromJson(Map<String, dynamic> json) =
@@ -313,9 +294,7 @@ abstract class _OdemeBaslatRequest implements OdemeBaslatRequest {
   @override
   KartBilgileri? get kartBilgileri;
   @override
-  double? get ton;
-  @override
-  double? get tutar;
+  String? get odemeId;
 
   /// Create a copy of OdemeBaslatRequest
   /// with the given fields replaced by the non-null parameter values.

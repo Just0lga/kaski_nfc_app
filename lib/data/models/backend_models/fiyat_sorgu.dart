@@ -22,6 +22,7 @@ class FiyatSorguResponse with _$FiyatSorguResponse {
     String? hata,
     String? hataAciklama,
     double? toplam,
+    String? odemeId,
   }) = _FiyatSorguResponse;
 
   factory FiyatSorguResponse.fromJson(Map<String, dynamic> json) =>

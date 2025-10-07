@@ -17,8 +17,7 @@ _$OdemeBaslatRequestImpl _$$OdemeBaslatRequestImplFromJson(
   kartBilgileri: json['kartBilgileri'] == null
       ? null
       : KartBilgileri.fromJson(json['kartBilgileri'] as Map<String, dynamic>),
-  ton: (json['ton'] as num?)?.toDouble(),
-  tutar: (json['tutar'] as num?)?.toDouble(),
+  odemeId: json['odemeId'] as String?,
 );
 
 Map<String, dynamic> _$$OdemeBaslatRequestImplToJson(
@@ -28,8 +27,7 @@ Map<String, dynamic> _$$OdemeBaslatRequestImplToJson(
   'islemBaslangicTarihi': instance.islemBaslangicTarihi,
   'paydeskKodu': instance.paydeskKodu,
   'kartBilgileri': instance.kartBilgileri,
-  'ton': instance.ton,
-  'tutar': instance.tutar,
+  'odemeId': instance.odemeId,
 };
 
 _$OdemeBaslatResponseImpl _$$OdemeBaslatResponseImplFromJson(

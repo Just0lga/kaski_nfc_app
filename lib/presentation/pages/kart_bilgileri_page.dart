@@ -15,12 +15,14 @@ class KartBilgileriPage extends StatefulWidget {
   final ConsumerCard cardData;
   final double tonMiktari;
   final double tutar;
+  final String odemeId;
 
   const KartBilgileriPage({
     super.key,
     required this.cardData,
     required this.tonMiktari,
     required this.tutar,
+    required this.odemeId,
   });
 
   @override
@@ -118,9 +120,9 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
         islemBaslangicTarihi: DateTime.now().toIso8601String(),
         paydeskKodu: int.tryParse(widget.cardData.paydeskCode ?? "0") ?? 0,
         kartBilgileri: kartBilgileri,
-        ton: widget.tonMiktari,
-        tutar: widget.tutar,
+        odemeId: widget.odemeId,
       );
+      print("uıu $response");
 
       setState(() {
         _isProcessingPayment = false;
@@ -431,6 +433,14 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
         children: [
           Column(
             children: [
+              Text(
+                widget.odemeId,
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               // Ana içerik
               Expanded(
                 child: SingleChildScrollView(

@@ -5,14 +5,14 @@ import 'package:kaski_nfc_app/presentation/pages/abone_bilgileri_page.dart';
 import 'package:kaski_nfc_app/presentation/pages/main_page.dart';
 import '../providers/nfc_provider.dart';
 
-class StartPage extends ConsumerStatefulWidget {
-  const StartPage({super.key});
+class KartOkumaPage extends ConsumerStatefulWidget {
+  const KartOkumaPage({super.key});
 
   @override
-  ConsumerState<StartPage> createState() => _StartPageState();
+  ConsumerState<KartOkumaPage> createState() => _KartOkumaPageState();
 }
 
-class _StartPageState extends ConsumerState<StartPage>
+class _KartOkumaPageState extends ConsumerState<KartOkumaPage>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
@@ -34,7 +34,7 @@ class _StartPageState extends ConsumerState<StartPage>
   @override
   void initState() {
     super.initState();
-    print("xxx StartPage - initState called");
+    print("xxx KartOkumaPage - initState called");
 
     _hasNavigated = false; // Reset navigation flag
 
@@ -50,7 +50,7 @@ class _StartPageState extends ConsumerState<StartPage>
 
     // NFC provider'ı dinle
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      print("🔄 StartPage - PostFrameCallback called");
+      print("🔄 KartOkumaPage - PostFrameCallback called");
 
       final nfcNotifier = ref.read(nfcProvider.notifier);
       final currentState = ref.read(nfcProvider);
@@ -83,7 +83,7 @@ class _StartPageState extends ConsumerState<StartPage>
 
   @override
   void dispose() {
-    print("🧹 StartPage - dispose called");
+    print("🧹 KartOkumaPage - dispose called");
     _animationController.dispose();
     super.dispose();
   }
@@ -95,7 +95,7 @@ class _StartPageState extends ConsumerState<StartPage>
     // ref.watch ile state'i dinle
     final nfcState = ref.watch(nfcProvider);
 
-    print('🔍 StartPage build - NFC State:');
+    print('🔍 KartOkumaPage build - NFC State:');
     print('  - cardData: ${nfcState.cardData != null ? 'exists' : 'null'}');
     print('  - isLoading: ${nfcState.isLoading}');
     print('  - hasNavigated: $_hasNavigated');

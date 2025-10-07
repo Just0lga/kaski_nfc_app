@@ -12,8 +12,7 @@ class OdemeBaslatRequest with _$OdemeBaslatRequest {
     String? islemBaslangicTarihi,
     int? paydeskKodu,
     KartBilgileri? kartBilgileri,
-    double? ton,
-    double? tutar,
+    String? odemeId,
   }) = _OdemeBaslatRequest;
 
   factory OdemeBaslatRequest.fromJson(Map<String, dynamic> json) =>

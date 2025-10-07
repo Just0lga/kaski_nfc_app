@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kaski_nfc_app/data/services/frontend_services.dart/device_service.dart';
 import 'package:kaski_nfc_app/presentation/pages/odeme_gecmisi_page.dart';
-import 'package:kaski_nfc_app/presentation/pages/start_page.dart';
+import 'package:kaski_nfc_app/presentation/pages/kart_okuma_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -58,7 +58,7 @@ class _MainPageState extends State<MainPage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => StartPage()),
+                  MaterialPageRoute(builder: (context) => KartOkumaPage()),
                 );
                 debugPrint("Karta Para Yükle tıklandı");
               },

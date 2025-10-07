@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:kaski_nfc_app/presentation/pages/start_page.dart';
+import 'package:kaski_nfc_app/presentation/pages/kart_okuma_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kaski_nfc_app/presentation/pages/sonuc_page.dart';
 import '../providers/nfc_provider.dart';
@@ -151,7 +151,7 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
     }
   }
 
-  void _goBackToStartPage() {
+  void _goBackToKartOkumaPage() {
     if (!_isNavigating && mounted) {
       _isNavigating = true;
       print('🏠 Going back to start page...');
@@ -160,7 +160,7 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
       nfcNotifier.resetToInitialState();
 
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const StartPage()),
+        MaterialPageRoute(builder: (context) => const KartOkumaPage()),
         (route) => false,
       );
     }
@@ -254,7 +254,7 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.home, color: Colors.white),
-          onPressed: _goBackToStartPage,
+          onPressed: _goBackToKartOkumaPage,
           tooltip: 'Ana Sayfa',
         ),
       ),
@@ -359,7 +359,7 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
                   ),
                 ),
                 ElevatedButton.icon(
-                  onPressed: _goBackToStartPage,
+                  onPressed: _goBackToKartOkumaPage,
                   icon: const Icon(Icons.home, size: 20),
                   label: const Text(
                     "Ana Sayfa",

@@ -20,6 +20,7 @@ class MiktarGirisiPage extends StatefulWidget {
 class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
   double tonMiktari = 10.0;
   double tutar = 0.0;
+  String odemeId = "";
   final TextEditingController _controller = TextEditingController();
   final FiyatSorguController _fiyatSorguController = FiyatSorguController();
   bool _isLoadingPrice = false;
@@ -108,6 +109,7 @@ class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
         // Tutarı güncelle
         setState(() {
           tutar = toplamTutar;
+          odemeId = response.odemeId;
           _priceErrorMessage = null;
         });
 
@@ -492,6 +494,7 @@ class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
                               cardData: widget.cardData,
                               tonMiktari: tonMiktari,
                               tutar: tutar,
+                              odemeId: odemeId,
                             ),
                           ),
                         );

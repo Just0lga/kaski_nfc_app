@@ -238,6 +238,7 @@ mixin _$FiyatSorguResponse {
   String? get hata => throw _privateConstructorUsedError;
   String? get hataAciklama => throw _privateConstructorUsedError;
   double? get toplam => throw _privateConstructorUsedError;
+  String? get odemeId => throw _privateConstructorUsedError;
 
   /// Serializes this FiyatSorguResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -256,7 +257,12 @@ abstract class $FiyatSorguResponseCopyWith<$Res> {
     $Res Function(FiyatSorguResponse) then,
   ) = _$FiyatSorguResponseCopyWithImpl<$Res, FiyatSorguResponse>;
   @useResult
-  $Res call({String? hata, String? hataAciklama, double? toplam});
+  $Res call({
+    String? hata,
+    String? hataAciklama,
+    double? toplam,
+    String? odemeId,
+  });
 }
 
 /// @nodoc
@@ -277,6 +283,7 @@ class _$FiyatSorguResponseCopyWithImpl<$Res, $Val extends FiyatSorguResponse>
     Object? hata = freezed,
     Object? hataAciklama = freezed,
     Object? toplam = freezed,
+    Object? odemeId = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -292,6 +299,10 @@ class _$FiyatSorguResponseCopyWithImpl<$Res, $Val extends FiyatSorguResponse>
                 ? _value.toplam
                 : toplam // ignore: cast_nullable_to_non_nullable
                       as double?,
+            odemeId: freezed == odemeId
+                ? _value.odemeId
+                : odemeId // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -307,7 +318,12 @@ abstract class _$$FiyatSorguResponseImplCopyWith<$Res>
   ) = __$$FiyatSorguResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String? hata, String? hataAciklama, double? toplam});
+  $Res call({
+    String? hata,
+    String? hataAciklama,
+    double? toplam,
+    String? odemeId,
+  });
 }
 
 /// @nodoc
@@ -327,6 +343,7 @@ class __$$FiyatSorguResponseImplCopyWithImpl<$Res>
     Object? hata = freezed,
     Object? hataAciklama = freezed,
     Object? toplam = freezed,
+    Object? odemeId = freezed,
   }) {
     return _then(
       _$FiyatSorguResponseImpl(
@@ -342,6 +359,10 @@ class __$$FiyatSorguResponseImplCopyWithImpl<$Res>
             ? _value.toplam
             : toplam // ignore: cast_nullable_to_non_nullable
                   as double?,
+        odemeId: freezed == odemeId
+            ? _value.odemeId
+            : odemeId // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -350,7 +371,12 @@ class __$$FiyatSorguResponseImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$FiyatSorguResponseImpl implements _FiyatSorguResponse {
-  const _$FiyatSorguResponseImpl({this.hata, this.hataAciklama, this.toplam});
+  const _$FiyatSorguResponseImpl({
+    this.hata,
+    this.hataAciklama,
+    this.toplam,
+    this.odemeId,
+  });
 
   factory _$FiyatSorguResponseImpl.fromJson(Map<String, dynamic> json) =>
       _$$FiyatSorguResponseImplFromJson(json);
@@ -361,10 +387,12 @@ class _$FiyatSorguResponseImpl implements _FiyatSorguResponse {
   final String? hataAciklama;
   @override
   final double? toplam;
+  @override
+  final String? odemeId;
 
   @override
   String toString() {
-    return 'FiyatSorguResponse(hata: $hata, hataAciklama: $hataAciklama, toplam: $toplam)';
+    return 'FiyatSorguResponse(hata: $hata, hataAciklama: $hataAciklama, toplam: $toplam, odemeId: $odemeId)';
   }
 
   @override
@@ -375,12 +403,14 @@ class _$FiyatSorguResponseImpl implements _FiyatSorguResponse {
             (identical(other.hata, hata) || other.hata == hata) &&
             (identical(other.hataAciklama, hataAciklama) ||
                 other.hataAciklama == hataAciklama) &&
-            (identical(other.toplam, toplam) || other.toplam == toplam));
+            (identical(other.toplam, toplam) || other.toplam == toplam) &&
+            (identical(other.odemeId, odemeId) || other.odemeId == odemeId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, hata, hataAciklama, toplam);
+  int get hashCode =>
+      Object.hash(runtimeType, hata, hataAciklama, toplam, odemeId);
 
   /// Create a copy of FiyatSorguResponse
   /// with the given fields replaced by the non-null parameter values.
@@ -404,6 +434,7 @@ abstract class _FiyatSorguResponse implements FiyatSorguResponse {
     final String? hata,
     final String? hataAciklama,
     final double? toplam,
+    final String? odemeId,
   }) = _$FiyatSorguResponseImpl;
 
   factory _FiyatSorguResponse.fromJson(Map<String, dynamic> json) =
@@ -415,6 +446,8 @@ abstract class _FiyatSorguResponse implements FiyatSorguResponse {
   String? get hataAciklama;
   @override
   double? get toplam;
+  @override
+  String? get odemeId;
 
   /// Create a copy of FiyatSorguResponse
   /// with the given fields replaced by the non-null parameter values.
