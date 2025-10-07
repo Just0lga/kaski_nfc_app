@@ -7,6 +7,7 @@ import 'package:kaski_nfc_app/data/services/frontend_services.dart/device_servic
 import 'package:kaski_nfc_app/presentation/controllers/odeme_baslat_controller.dart';
 import 'package:kaski_nfc_app/presentation/pages/karta_yukleme_page.dart';
 import 'package:kaski_nfc_app/core/widgets/custom_button.dart';
+import 'package:kaski_nfc_app/presentation/pages/odeme_kontrolu_page.dart';
 import 'package:kaski_nfc_app/presentation/pages/payment_web_view.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../data/models/frontend_models/consumer_card.dart';
@@ -233,10 +234,11 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => KartaYukleme(
+          builder: (context) => OdemeKontroluPage(
             cardData: widget.cardData,
             tonMiktari: widget.tonMiktari,
             tutar: widget.tutar,
+            odemeId: widget.odemeId,
           ),
         ),
       );

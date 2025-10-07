@@ -6,12 +6,14 @@ class OdemeKontroluPage extends StatefulWidget {
   final ConsumerCard cardData;
   final double tonMiktari;
   final double tutar;
+  final String odemeId;
 
   const OdemeKontroluPage({
     super.key,
     required this.cardData,
     required this.tonMiktari,
     required this.tutar,
+    required this.odemeId,
   });
 
   @override
@@ -49,6 +51,7 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage>
               cardData: widget.cardData,
               tonMiktari: widget.tonMiktari,
               tutar: widget.tutar,
+              odemeId: widget.odemeId,
             ),
           ),
         );

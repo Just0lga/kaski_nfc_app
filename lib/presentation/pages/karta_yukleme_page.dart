@@ -12,12 +12,13 @@ class KartaYukleme extends ConsumerStatefulWidget {
   final ConsumerCard cardData;
   final double tonMiktari;
   final double tutar;
-
+  final String odemeId;
   const KartaYukleme({
     super.key,
     required this.cardData,
     required this.tonMiktari,
     required this.tutar,
+    required this.odemeId,
   });
 
   @override
