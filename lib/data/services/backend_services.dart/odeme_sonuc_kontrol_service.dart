@@ -10,7 +10,7 @@ class OdemeSonucKontrolService {
     String? odemeId,
     String? sonuc,
   }) async {
-    final url = Uri.parse("${Env.apiUrl}/esayac/nfc/odemeSonucKontrol");
+    final url = Uri.parse("${Env.apiUrl}/nfc/odemeSonucKontrol");
 
     final request = OdemeSonucKontrolRequest(
       oturumBilgileri: oturumBilgileri,
