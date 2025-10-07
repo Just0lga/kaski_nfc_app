@@ -31,105 +31,185 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
+
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.blue,
-        iconTheme: IconThemeData(color: Colors.white),
-        centerTitle: true,
-        title: const Text(
-          "Ana Sayfa",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
+      backgroundColor: const Color(0xFF0F172A),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              const Color(0xFF0F172A),
+              const Color(0xFF1E293B),
+              Color(0xFF0D47A1),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
         ),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(width * 0.03),
-        child: Column(
-          children: [
-            Text(model),
-            Text(deviceId),
-            HomeMenuButton(
-              title: "Karta Para Yükle",
-              icon: Icons.credit_card,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => KartOkumaPage()),
-                );
-                debugPrint("Karta Para Yükle tıklandı");
-              },
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.all(width * 0.06),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: height * 0.03),
+
+                Text(
+                  "Hoşgeldiniz",
+                  style: TextStyle(
+                    fontSize: width * 0.09,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                ),
+
+                Text(
+                  "Maraş KASKİ",
+                  style: TextStyle(
+                    fontSize: width * 0.05,
+                    color: Color(0xFF0D47A1),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+
+                SizedBox(height: height * 0.06),
+
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      HomeMenuButton(
+                        title: "Karta Para Yükle",
+                        icon: Icons.credit_card_rounded,
+                        color: Color(0xFF0D47A1),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const KartOkumaPage(),
+                            ),
+                          );
+                          debugPrint("Karta Para Yükle tıklandı");
+                        },
+                      ),
+
+                      SizedBox(height: height * 0.025),
+
+                      HomeMenuButton(
+                        title: "Ödeme Geçmişi",
+                        icon: Icons.history_rounded,
+                        color: Colors.cyan,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const OdemeGecmisiPage(),
+                            ),
+                          );
+                          debugPrint("Ödeme Geçmişi tıklandı");
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+
+                Center(
+                  child: Text(
+                    "© 2025 Maraş KASKİ",
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.4),
+                      fontSize: width * 0.032,
+                    ),
+                  ),
+                ),
+                SizedBox(height: height * 0.01),
+              ],
             ),
-            SizedBox(height: width * 0.03),
-            HomeMenuButton(
-              title: "Ödeme Geçmişi",
-              icon: Icons.history,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => OdemeGecmisiPage()),
-                );
-                debugPrint("Ödeme Geçmişi tıklandı");
-              },
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-/// 🔹 Ortak buton widget’ı
 class HomeMenuButton extends StatelessWidget {
   final String title;
   final IconData icon;
+  final Color color;
   final VoidCallback onTap;
 
   const HomeMenuButton({
     super.key,
     required this.title,
     required this.icon,
+    required this.color,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
 
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(24),
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: width * 0.06),
+        width: double.infinity,
+        height: height * 0.22,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF60BEF4), Color(0xFF2563EB)],
-
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(width * 0.04),
+          color: const Color(0xFF1E293B),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: color.withOpacity(0.3), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              blurRadius: 8,
-              offset: const Offset(2, 4),
+              color: color.withOpacity(0.2),
+              blurRadius: 30,
+              spreadRadius: 0,
+              offset: const Offset(0, 10),
             ),
           ],
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Stack(
           children: [
-            Icon(icon, color: Colors.white, size: width * 0.08),
-            SizedBox(width: width * 0.04),
-            Text(
-              title,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: width * 0.06,
-                fontWeight: FontWeight.bold,
+            Positioned(
+              right: -20,
+              top: -20,
+              child: Container(
+                width: width * 0.35,
+                height: width * 0.35,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color.withOpacity(0.1),
+                ),
+              ),
+            ),
+
+            Padding(
+              padding: EdgeInsets.all(width * 0.06),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(width * 0.04),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(icon, color: color, size: width * 0.1),
+                  ),
+
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: width * 0.058,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

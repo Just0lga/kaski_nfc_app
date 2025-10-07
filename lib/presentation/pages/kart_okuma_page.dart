@@ -124,7 +124,7 @@ class _KartOkumaPageState extends ConsumerState<KartOkumaPage>
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue,
+        backgroundColor: Color(0xFF0D47A1),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(
@@ -135,7 +135,7 @@ class _KartOkumaPageState extends ConsumerState<KartOkumaPage>
           tooltip: 'Ana Sayfa',
         ),
       ),
-      backgroundColor: Colors.blue,
+      backgroundColor: Color(0xFF0D47A1),
       body: Center(
         child: Column(
           children: [
@@ -226,7 +226,7 @@ class _KartOkumaPageState extends ConsumerState<KartOkumaPage>
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        foregroundColor: Colors.blue,
+                        foregroundColor: Color(0xFF0D47A1),
                       ),
                       child: const Text("Kartı Oku"),
                     ),

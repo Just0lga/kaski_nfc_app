@@ -47,7 +47,7 @@ class _SonucPageState extends ConsumerState<SonucPage> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: Color(0xFF0D47A1),
         automaticallyImplyLeading: false, // Geri butonu kaldır
       ),
       body: SafeArea(
@@ -94,9 +94,9 @@ class _SonucPageState extends ConsumerState<SonucPage> {
                       margin: EdgeInsets.symmetric(horizontal: width * 0.08),
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.blue[50],
+                        color: Color(0xFF0D47A1).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.blue[200]!),
+                        border: Border.all(color: Color(0xFF0D47A1)),
                       ),
                       child: Column(
                         children: [
@@ -197,7 +197,7 @@ class _SonucPageState extends ConsumerState<SonucPage> {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Color(0xFF0D47A1),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(

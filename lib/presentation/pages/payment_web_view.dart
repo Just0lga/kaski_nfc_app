@@ -221,7 +221,7 @@ class _PaymentWebViewPageState extends State<PaymentWebViewPage> {
             ),
           ),
           centerTitle: true,
-          backgroundColor: Colors.blue,
+          backgroundColor: Color(0xFF0D47A1),
           leading: IconButton(
             icon: const Icon(Icons.close, color: Colors.white),
             onPressed: _showExitConfirmationDialog,

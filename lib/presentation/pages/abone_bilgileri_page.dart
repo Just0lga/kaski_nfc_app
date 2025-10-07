@@ -180,7 +180,7 @@ class _AboneBilgileriPageState extends ConsumerState<AboneBilgileriPage> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: Color(0xFF0D47A1),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.home, color: Colors.white),
@@ -232,7 +232,7 @@ class _AboneBilgileriPageState extends ConsumerState<AboneBilgileriPage> {
                             icon: const Icon(Icons.refresh),
                             label: const Text("Tekrar Dene"),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
+                              backgroundColor: Color(0xFF0D47A1),
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
@@ -256,9 +256,9 @@ class _AboneBilgileriPageState extends ConsumerState<AboneBilgileriPage> {
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0xFF60BEF4), Color(0xFF2563EB)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
+                              colors: [Color(0xFF0D47A1), Color(0xFF0F172A)],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
                             ),
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
@@ -342,7 +342,7 @@ class _AboneBilgileriPageState extends ConsumerState<AboneBilgileriPage> {
           ),
           CustomButton(
             buttonText: "Devam et",
-            buttonColor: Colors.blue,
+            buttonColor: Color(0xFF0D47A1),
             buttonOnTap: () {
               Navigator.push(
                 context,

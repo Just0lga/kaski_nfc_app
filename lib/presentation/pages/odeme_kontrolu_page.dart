@@ -187,7 +187,7 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage>
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blue,
+        backgroundColor: Color(0xFF0D47A1),
         elevation: 0,
         automaticallyImplyLeading: false,
         actions: [
@@ -245,7 +245,7 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage>
     String subtitle;
 
     if (_isCheckingPayment) {
-      cardColor = Colors.blue;
+      cardColor = Color(0xFF0D47A1);
       iconData = Icons.hourglass_empty;
       title = "Kontrol Ediliyor";
       subtitle = "Ödeme durumunuz sorgulanıyor...";
@@ -363,12 +363,12 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
+                  color: Color(0xFF0D47A1).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
                   Icons.receipt_long,
-                  color: Colors.blue,
+                  color: Color(0xFF0D47A1),
                   size: 20,
                 ),
               ),
@@ -391,7 +391,7 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage>
             "Yüklenecek Miktar",
             "${widget.tonMiktari} ton",
             Icons.water_drop,
-            Colors.blue,
+            Color(0xFF0D47A1),
           ),
           const Divider(height: 24),
           _buildDetailRow(
@@ -537,8 +537,8 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage>
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.blue,
-                side: const BorderSide(color: Colors.blue, width: 2),
+                foregroundColor: Color(0xFF0D47A1),
+                side: const BorderSide(color: Color(0xFF0D47A1), width: 2),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

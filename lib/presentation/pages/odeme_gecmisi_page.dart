@@ -12,7 +12,7 @@ class _OdemeGecmisiPageState extends State<OdemeGecmisiPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue,
+        backgroundColor: Color(0xFF0D47A1),
         centerTitle: true,
         iconTheme: IconThemeData(color: Colors.white),
         title: Text(

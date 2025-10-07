@@ -312,7 +312,7 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
           ),
           title: Row(
             children: const [
-              Icon(Icons.payment, color: Colors.blue, size: 28),
+              Icon(Icons.payment, color: Color(0xFF0D47A1), size: 28),
               SizedBox(width: 8),
               Text(
                 "Ödeme Modu",
@@ -364,7 +364,7 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: Color(0xFF0D47A1),
                   foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
@@ -406,7 +406,7 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
   @override
   Widget build(BuildContext context) {
     final keyboardOpen = isKeyboardVisible(context);
-    const borderColor = Colors.blue;
+    const borderColor = Color(0xFF0D47A1);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -421,7 +421,7 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blue,
+        backgroundColor: Color(0xFF0D47A1),
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.white),
         leading: IconButton(
@@ -720,9 +720,11 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
                   padding: const EdgeInsets.all(12),
                   margin: const EdgeInsets.symmetric(horizontal: 8),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.2),
+                    color: Color(0xFF0D47A1).withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue.withOpacity(0.5)),
+                    border: Border.all(
+                      color: Color(0xFF0D47A1).withOpacity(0.5),
+                    ),
                   ),
                   child: Column(
                     children: [
@@ -752,7 +754,7 @@ class _KartBilgileriPageState extends State<KartBilgileriPage> {
                           const Text(
                             "Ödenecek Tutar",
                             style: TextStyle(
-                              color: Colors.blue,
+                              color: Color(0xFF0D47A1),
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),

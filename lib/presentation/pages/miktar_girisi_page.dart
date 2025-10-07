@@ -348,7 +348,7 @@ class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blue,
+        backgroundColor: Color(0xFF0D47A1),
         iconTheme: IconThemeData(color: Colors.white),
         leading: IconButton(
           onPressed: () {
@@ -378,9 +378,9 @@ class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
-                            color: Colors.blue.withOpacity(0.2),
+                            color: Color(0xFF0D47A1).withOpacity(0.2),
                             border: Border.all(
-                              color: Colors.blue.withOpacity(0.5),
+                              color: Color(0xFF0D47A1).withOpacity(0.5),
                             ),
                           ),
                           child: Padding(
@@ -401,7 +401,7 @@ class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
                                         : FontWeight.w400,
                                     fontSize: 28,
                                     color: tonMiktari > 0
-                                        ? Colors.blue
+                                        ? Color(0xFF0D47A1)
                                         : Colors.black87,
                                   ),
                                 ),
@@ -412,7 +412,7 @@ class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
                                       "Değiştirmek için tıklayın",
                                       style: TextStyle(
                                         fontSize: 16,
-                                        color: Colors.blue,
+                                        color: Color(0xFF0D47A1),
                                       ),
                                     ),
                                   ),
@@ -481,7 +481,7 @@ class _MiktarGirisiPageState extends State<MiktarGirisiPage> {
                         tutar > 0 &&
                             !_isLoadingPrice &&
                             _priceErrorMessage == null
-                        ? Colors.blue
+                        ? Color(0xFF0D47A1)
                         : Colors.grey,
                     buttonOnTap: () {
                       if (tutar > 0 &&

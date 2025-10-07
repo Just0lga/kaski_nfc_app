@@ -385,7 +385,7 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
 
   Widget _buildMainScreen(double height, double width, NFCState nfcState) {
     return Scaffold(
-      backgroundColor: Colors.blue,
+      backgroundColor: Color(0xFF0D47A1),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Container(
@@ -440,7 +440,7 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: width * 0.15),
                   child: LinearProgressIndicator(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Color(0xFF0D47A1),
                     color: const Color.fromRGBO(235, 254, 254, 1.0),
                     value: _getProgressValue(nfcState),
                   ),
@@ -661,7 +661,7 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
-                foregroundColor: Colors.blue,
+                foregroundColor: Color(0xFF0D47A1),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 8,
