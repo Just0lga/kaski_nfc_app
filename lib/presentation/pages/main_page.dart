@@ -68,7 +68,7 @@ class _MainPageState extends State<MainPage> {
                   "Maraş KASKİ",
                   style: TextStyle(
                     fontSize: width * 0.05,
-                    color: Color(0xFF0D47A1),
+                    color: Color.fromARGB(255, 95, 154, 242),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -161,7 +161,7 @@ class HomeMenuButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFF1E293B),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+          border: Border.all(color: Colors.white),
           boxShadow: [
             BoxShadow(
               color: color.withOpacity(0.2),
@@ -196,6 +196,7 @@ class HomeMenuButton extends StatelessWidget {
                     padding: EdgeInsets.all(width * 0.04),
                     decoration: BoxDecoration(
                       color: color.withOpacity(0.15),
+                      border: Border.all(color: Colors.white),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(icon, color: color, size: width * 0.1),
