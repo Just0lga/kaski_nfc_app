@@ -1,13 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kaski_nfc_app/data/models/frontend_models/consumer_card.dart';
+import 'package:kaski_nfc_app/presentation/pages/main_page.dart';
+import 'package:kaski_nfc_app/presentation/providers/nfc_provider.dart';
 
-class OdemeGecmisiPage extends StatefulWidget {
-  const OdemeGecmisiPage({super.key});
+class OdemeGecmisiPage extends ConsumerStatefulWidget {
+  final ConsumerCard cardData;
+
+  const OdemeGecmisiPage({super.key, required this.cardData});
 
   @override
-  State<OdemeGecmisiPage> createState() => _OdemeGecmisiPageState();
+  ConsumerState<OdemeGecmisiPage> createState() => _OdemeGecmisiPageState();
 }
 
-class _OdemeGecmisiPageState extends State<OdemeGecmisiPage> {
+class _OdemeGecmisiPageState extends ConsumerState<OdemeGecmisiPage> {
+  void _returnToMainPage() {
+    final nfcNotifier = ref.read(nfcProvider.notifier);
+
+    print("🔄 Resetting NFC provider and returning to main page");
+
+    nfcNotifier.resetToInitialState();
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const MainPage()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,13 +43,17 @@ class _OdemeGecmisiPageState extends State<OdemeGecmisiPage> {
           ),
         ),
         leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Icon(Icons.arrow_back_ios_new_rounded),
+          icon: const Icon(Icons.home, color: Colors.white),
+          onPressed: _returnToMainPage,
+          tooltip: 'Ana Sayfa',
         ),
       ),
-      body: Column(),
+      body: Column(
+        children: [
+          Text("cardId: ${widget.cardData.cardSeriNo}"),
+          Text("customerId: ${widget.cardData.customerNo}"),
+        ],
+      ),
     );
   }
 }

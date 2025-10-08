@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:kaski_nfc_app/presentation/pages/abone_bilgileri_page.dart';
 import 'package:kaski_nfc_app/presentation/pages/main_page.dart';
+import 'package:kaski_nfc_app/presentation/pages/odeme_gecmisi_page.dart';
 import '../providers/nfc_provider.dart';
 
 class KartOkumaPage extends ConsumerStatefulWidget {
-  const KartOkumaPage({super.key});
+  final bool toOdemeGecmisiPage;
+  const KartOkumaPage({super.key, this.toOdemeGecmisiPage = false});
 
   @override
   ConsumerState<KartOkumaPage> createState() => _KartOkumaPageState();
@@ -114,8 +116,9 @@ class _KartOkumaPageState extends ConsumerState<KartOkumaPage>
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  AboneBilgileriPage(cardData: nfcState.cardData!),
+              builder: (context) => widget.toOdemeGecmisiPage
+                  ? OdemeGecmisiPage(cardData: nfcState.cardData!)
+                  : AboneBilgileriPage(cardData: nfcState.cardData!),
             ),
           );
         }

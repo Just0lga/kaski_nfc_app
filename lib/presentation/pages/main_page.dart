@@ -104,7 +104,8 @@ class _MainPageState extends State<MainPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const OdemeGecmisiPage(),
+                              builder: (context) =>
+                                  const KartOkumaPage(toOdemeGecmisiPage: true),
                             ),
                           );
                           debugPrint("Ödeme Geçmişi tıklandı");
