@@ -1,23 +1,19 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:kaski_nfc_app/core/constants/Env.dart';
-import '../../models/backend_models/kart_yazim.dart';
+import 'package:kaski_nfc_app/data/models/backend_models/kart_yazim_bitis.dart';
 import '../../models/backend_models/oturum_bilgileri.dart';
 
-class KartYazimService {
-  Future<KartYazimResponse?> kartYazim({
+class KartYazimBitisService {
+  Future<KartYazimBitisResponse?> kartYazimBitis({
     required OturumBilgileri oturumBilgileri,
     String? odemeId,
-    String? sonuc,
-    int? paydeskKodu,
   }) async {
-    final url = Uri.parse("${Env.apiUrl}/esayac/nfc/kartYazim");
+    final url = Uri.parse("${Env.apiUrl}/esayac/nfc/kartYazimBitis");
 
-    final request = KartYazimRequest(
+    final request = KartYazimBitisRequest(
       oturumBilgileri: oturumBilgileri,
       odemeId: odemeId,
-      sonuc: sonuc,
-      paydeskKodu: paydeskKodu,
     );
 
     final response = await http.post(
@@ -30,7 +26,7 @@ class KartYazimService {
 
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
-      return KartYazimResponse.fromJson(decoded);
+      return KartYazimBitisResponse.fromJson(decoded);
     }
 
     return null;
