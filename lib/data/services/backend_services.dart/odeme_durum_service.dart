@@ -1,22 +1,22 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:kaski_nfc_app/core/constants/Env.dart';
-import '../../models/backend_models/odeme_sonuc_kontrol.dart';
+import '../../models/backend_models/odeme_durum.dart';
 import '../../models/backend_models/oturum_bilgileri.dart';
 
-class OdemeSonucKontrolService {
-  Future<OdemeSonucKontrolResponse?> odemeSonucKontrol({
+class OdemeDurumService {
+  Future<OdemeDurumResponse?> odemeDurumKontrol({
     required OturumBilgileri oturumBilgileri,
-    String? odemeId,
-    String? sonuc,
+    required String odemeId,
   }) async {
-    final url = Uri.parse("${Env.apiUrl}/nfc/odemeSonucKontrol");
+    final url = Uri.parse("${Env.apiUrl}/nfc/odemeDurum");
 
-    final request = OdemeSonucKontrolRequest(
+    final request = OdemeDurumRequest(
       oturumBilgileri: oturumBilgileri,
       odemeId: odemeId,
-      sonuc: sonuc,
     );
+
+    print("odeme durum request $request");
 
     final response = await http.post(
       url,
@@ -24,11 +24,11 @@ class OdemeSonucKontrolService {
       body: jsonEncode(request.toJson()),
     );
 
-    print("odeme sonuc kontrol response: ${response.body}");
+    print("odeme durum response: ${response.body}");
 
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
-      return OdemeSonucKontrolResponse.fromJson(decoded);
+      return OdemeDurumResponse.fromJson(decoded);
     }
 
     return null;

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:kaski_nfc_app/data/models/backend_models/oturum_bilgileri.dart';
+import 'package:kaski_nfc_app/data/models/backend_models/odeme_durum.dart';
 import 'package:kaski_nfc_app/data/services/frontend_services.dart/device_service.dart';
-import 'package:kaski_nfc_app/presentation/controllers/odeme_sonuc_kontrol_controller.dart';
+import 'package:kaski_nfc_app/presentation/controllers/odeme_durum_controller.dart';
 import 'package:kaski_nfc_app/presentation/pages/karta_yukleme_page.dart';
 import 'package:kaski_nfc_app/presentation/pages/main_page.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -34,6 +35,9 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage>
   bool _paymentSuccess = false;
   String? _errorMessage;
   int _retryCount = 0;
+
+  // Backend'den gelen veriler
+  OdemeDurumResponse? _paymentData;
 
   @override
   void initState() {
@@ -82,12 +86,12 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage>
         sayfa: 'OdemeKontroluPage',
       );
 
-      print("📤 Ödeme sonucu kontrol ediliyor...");
+      print("📤 Ödeme durumu kontrol ediliyor...");
       print("🆔 Odeme ID: ${widget.odemeId}");
 
       // API çağrısı
-      final controller = OdemeSonucKontrolController();
-      final response = await controller.odemeSonucKontrol(
+      final controller = OdemeDurumController();
+      final response = await controller.odemeDurumKontrol(
         oturumBilgileri,
         odemeId: widget.odemeId,
       );
@@ -96,33 +100,25 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage>
 
       setState(() {
         _isCheckingPayment = false;
+        _paymentData = response;
       });
 
       if (response != null) {
-        // Hata kontrolü
-        if (response.hata != null && response.hata!.isNotEmpty) {
-          setState(() {
-            _errorMessage = response.hataAciklama ?? 'Ödeme kontrolü başarısız';
-            _paymentSuccess = false;
-          });
-          print("❌ Hata: ${response.hataAciklama}");
-          return;
-        }
-
-        // Sonuç kontrolü
-        if (response.sonuc == "OK") {
+        // basOdemeId kontrolü - ödeme başarılı ise bu alan dolu olmalı
+        if (response.basOdemeId != null && response.basOdemeId!.isNotEmpty) {
           setState(() {
             _paymentSuccess = true;
             _errorMessage = null;
           });
           print("✅ Ödeme başarılı!");
+          print("💰 Backend Tutar: ${response.basTutar} TL");
+          print("🚰 Backend Ton: ${response.basTon} ton");
         } else {
           setState(() {
             _paymentSuccess = false;
-            _errorMessage =
-                'Ödeme onaylanmadı: ${response.sonuc ?? "Bilinmiyor"}';
+            _errorMessage = 'Ödeme henüz onaylanmadı';
           });
-          print("⚠️ Ödeme sonucu: ${response.sonuc}");
+          print("⚠️ Ödeme henüz tamamlanmamış");
         }
       } else {
         setState(() {
@@ -341,6 +337,11 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage>
   }
 
   Widget _buildPaymentDetails(Size size) {
+    // Backend'den gelen veriler varsa onları kullan, yoksa widget'tan gelenler
+    final displayTon = _paymentData?.basTon ?? widget.tonMiktari;
+    final displayTutar = _paymentData?.basTutar ?? widget.tutar;
+    final hasBackendData = _paymentData != null && _paymentSuccess;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -373,9 +374,11 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage>
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
-                "İşlem Detayları",
-                style: TextStyle(
+              Text(
+                hasBackendData
+                    ? "Onaylanan İşlem Detayları"
+                    : "İşlem Detayları",
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
@@ -388,17 +391,19 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage>
 
           // Detay satırları
           _buildDetailRow(
-            "Yüklenecek Miktar",
-            "${widget.tonMiktari} ton",
+            hasBackendData ? "Onaylanan Miktar" : "Yüklenecek Miktar",
+            "${displayTon.toStringAsFixed(2)} ton",
             Icons.water_drop,
             Color(0xFF0D47A1),
+            showBadge: hasBackendData,
           ),
           const Divider(height: 24),
           _buildDetailRow(
-            "Ödenecek Tutar",
-            "${widget.tutar.toStringAsFixed(2)} TL",
+            hasBackendData ? "Ödenen Tutar" : "Ödenecek Tutar",
+            "${displayTutar.toStringAsFixed(2)} TL",
             Icons.payments,
             Colors.green,
+            showBadge: hasBackendData,
           ),
           const Divider(height: 24),
           _buildDetailRow(
@@ -410,9 +415,30 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage>
             Colors.orange,
             isSmall: true,
           ),
+
+          // Backend'den gelen ek bilgiler (varsa)
+          if (hasBackendData && _paymentData!.basIslemTarihi != null) ...[
+            const Divider(height: 24),
+            _buildDetailRow(
+              "İşlem Tarihi",
+              _formatDateTime(_paymentData!.basIslemTarihi!),
+              Icons.access_time,
+              Colors.purple,
+              isSmall: true,
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  String _formatDateTime(String isoDate) {
+    try {
+      final dateTime = DateTime.parse(isoDate);
+      return "${dateTime.day.toString().padLeft(2, '0')}.${dateTime.month.toString().padLeft(2, '0')}.${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}";
+    } catch (e) {
+      return isoDate;
+    }
   }
 
   Widget _buildDetailRow(
@@ -421,6 +447,7 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage>
     IconData icon,
     Color color, {
     bool isSmall = false,
+    bool showBadge = false,
   }) {
     return Row(
       children: [
@@ -437,13 +464,38 @@ class _OdemeKontroluPageState extends State<OdemeKontroluPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: isSmall ? 12 : 13,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w500,
-                ),
+              Row(
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: isSmall ? 12 : 13,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  if (showBadge) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text(
+                        "✓ Onaylandı",
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
               const SizedBox(height: 2),
               Text(

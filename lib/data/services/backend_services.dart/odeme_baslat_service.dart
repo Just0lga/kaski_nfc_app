@@ -22,7 +22,7 @@ class OdemeBaslatService {
       kartBilgileri: kartBilgileri,
       odemeId: odemeId,
     );
-    print("odeme baslat request: ${OdemeBaslatRequest}");
+    print("odeme baslat request: $request");
 
     final response = await http.post(
       url,
