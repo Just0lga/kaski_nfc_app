@@ -22,6 +22,7 @@ class _OdemeGecmisiPageState extends ConsumerState<OdemeGecmisiPage> {
   final GecmisBilgilerController _gecmisBilgilerController =
       GecmisBilgilerController();
   List<GecmisBilgilerResponse>? _gecmisBilgilerResponse;
+
   bool _isLoading = false;
   String? _errorMessage;
 

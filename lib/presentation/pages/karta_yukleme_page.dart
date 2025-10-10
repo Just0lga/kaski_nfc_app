@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:kaski_nfc_app/data/models/backend_models/oturum_bilgileri.dart';
+import 'package:kaski_nfc_app/data/services/frontend_services.dart/device_service.dart';
+import 'package:kaski_nfc_app/presentation/controllers/kart_yazim_baslangic_controller.dart';
+import 'package:kaski_nfc_app/presentation/controllers/kart_yazim_bitis_controller.dart';
 import 'package:kaski_nfc_app/presentation/pages/kart_okuma_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kaski_nfc_app/presentation/pages/sonuc_page.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../providers/nfc_provider.dart';
 import '../../data/models/frontend_models/consumer_card.dart';
 import '../../data/models/frontend_models/credit_request.dart';
@@ -33,6 +38,12 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
   bool _cardValidated = false;
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
+  final KartYazimBitisController _kartYazimBitisController =
+      KartYazimBitisController();
+  final KartYazimBaslangicController _kartYazimBaslangicController =
+      KartYazimBaslangicController();
+  bool _isCallingKartYazimBitis = false;
+
   @override
   void initState() {
     super.initState();
@@ -62,7 +73,7 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
     });
   }
 
-  void _startCardWriting() {
+  void _startCardWriting() async {
     if (!_writeStarted && mounted) {
       setState(() {
         _writeStarted = true;
@@ -71,15 +82,41 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
 
       final nfcNotifier = ref.read(nfcProvider.notifier);
 
-      print('🔄 Starting card writing process...');
-      print('📊 Current card data: ${widget.cardData.toString()}');
-      print('💰 Amount to add: ${widget.tutar}');
-      print(
-        '🔒 Initial card seri no: ${ref.read(nfcProvider).initialCardSeriNo}',
+      // Cihaz ve oturum bilgilerini oluştur
+      final deviceData = await DeviceService.getDeviceData();
+      final packageInfo = await PackageInfo.fromPlatform();
+      final oturumBilgileri = OturumBilgileri(
+        oturumTarihi: DateTime.now().toIso8601String(),
+        aboneNo: int.tryParse(widget.cardData.customerNo ?? "") ?? 0,
+        kartSeriNo: widget.cardData.cardSeriNo,
+        cihazId: deviceData['deviceId'],
+        cihazModel: deviceData['model'],
+        uygulamaVersiyonu: packageInfo.version,
+        sayfa: 'KartaYukleme-KartYazimBaslangic',
       );
 
-      // Önce kart okuyarak doğruluğu kontrol et
-      nfcNotifier.readCardBeforeWrite();
+      // 🔹 kartYazimBaslangic endpoint çağrısı
+      final controller = KartYazimBaslangicController();
+      final baslangicResponse = await controller.kartYazimBaslangic(
+        oturumBilgileri,
+      );
+
+      if (!mounted) return;
+
+      if (baslangicResponse != null &&
+          (baslangicResponse.hata == null || baslangicResponse.hata!.isEmpty)) {
+        print("✅ KartYazimBaslangic başarılı, NFC yazma başlıyor...");
+        // Kart doğrulama ve yazma işlemini başlat
+        nfcNotifier.readCardBeforeWrite();
+      } else {
+        print(
+          "❌ KartYazimBaslangic hatası: ${baslangicResponse?.hataAciklama}",
+        );
+        _showErrorDialog(
+          "İşlem Başlatılamadı",
+          baslangicResponse?.hataAciklama ?? "Kart yükleme başlatılamadı.",
+        );
+      }
     }
   }
 
@@ -130,6 +167,120 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
         _startCardWriting();
       }
     });
+  }
+
+  // KartYazimBitis endpoint'ini çağır ve sonuç sayfasına yönlendir
+  Future<void> _callKartYazimBitisAndNavigate() async {
+    if (_isCallingKartYazimBitis || !mounted) return;
+
+    setState(() {
+      _isCallingKartYazimBitis = true;
+    });
+
+    print('📤 Calling KartYazimBitis endpoint...');
+
+    try {
+      // Cihaz bilgilerini topla
+      final deviceData = await DeviceService.getDeviceData();
+      final packageInfo = await PackageInfo.fromPlatform();
+
+      // Oturum bilgileri oluştur
+      final oturumBilgileri = OturumBilgileri(
+        oturumTarihi: DateTime.now().toIso8601String(),
+        aboneNo: int.tryParse(widget.cardData.customerNo ?? "") ?? 0,
+        kartSeriNo: widget.cardData.cardSeriNo,
+        cihazId: deviceData['deviceId'],
+        cihazModel: deviceData['model'],
+        uygulamaVersiyonu: packageInfo.version,
+        sayfa: 'KartaYukleme-KartYazimBitis',
+      );
+
+      print("🆔 Odeme ID: ${widget.odemeId}");
+
+      // KartYazimBitis endpoint'ini çağır
+      final response = await _kartYazimBitisController.kartYazimBitis(
+        oturumBilgileri,
+        odemeId: widget.odemeId,
+      );
+
+      if (!mounted) return;
+
+      if (response != null) {
+        // Hata kontrolü - eğer hata null veya boş ise başarılı
+        if (response.hata == null || response.hata!.isEmpty) {
+          print("✅ KartYazimBitis başarılı!");
+          _navigateToResult();
+        } else {
+          // Hata var
+          print("❌ KartYazimBitis hatası: ${response.hataAciklama}");
+          _showErrorDialog(
+            "İşlem Tamamlanamadı",
+            response.hataAciklama ?? "Kart yazma işlemi tamamlanamadı",
+          );
+        }
+      } else {
+        print("❌ KartYazimBitis yanıt vermedi");
+        // Yine de sonuç sayfasına yönlendir
+        _navigateToResult();
+      }
+    } catch (e) {
+      print("❌ KartYazimBitis hatası: $e");
+      // Hata olsa bile sonuç sayfasına yönlendir
+      _navigateToResult();
+    } finally {
+      setState(() {
+        _isCallingKartYazimBitis = false;
+      });
+    }
+  }
+
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              const Icon(Icons.warning, color: Colors.orange, size: 28),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+            ],
+          ),
+          content: Text(message, style: const TextStyle(fontSize: 16)),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Yine de sonuç sayfasına git
+                _navigateToResult();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                "Tamam",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _navigateToResult() {
@@ -219,18 +370,19 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
       });
     }
 
-    // Write işlemi tamamlandığında - sadece başarılı olduğunda sonuç sayfasına git
+    // Write işlemi tamamlandığında - KartYazimBitis endpoint'ini çağır
     if (!nfcState.isLoading &&
         nfcState.writeCompleted &&
         (nfcState.message.toLowerCase().contains('success') ||
             nfcState.message.toLowerCase().contains('written')) &&
-        !_isNavigating) {
-      print('✅ Write completed successfully, waiting before navigation...');
+        !_isNavigating &&
+        !_isCallingKartYazimBitis) {
+      print('✅ Write completed successfully, calling KartYazimBitis...');
 
-      // PostFrameCallback ile navigation'ı güvenli hale getir
+      // PostFrameCallback ile KartYazimBitis çağrısını yap
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        Future.delayed(const Duration(seconds: 2), () {
-          _navigateToResult();
+        Future.delayed(const Duration(seconds: 1), () {
+          _callKartYazimBitisAndNavigate();
         });
       });
     }
@@ -513,7 +665,8 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
                       ),
 
                       // Write tamamlandıysa başarı mesajı göster
-                      if (nfcState.writeCompleted) ...[
+                      if (nfcState.writeCompleted &&
+                          !_isCallingKartYazimBitis) ...[
                         const SizedBox(height: 12),
                         Container(
                           padding: const EdgeInsets.all(8),
@@ -532,6 +685,41 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
                               SizedBox(width: 8),
                               Text(
                                 "Yükleme Başarılı!",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+
+                      // KartYazimBitis çağrılıyor göstergesi
+                      if (_isCallingKartYazimBitis) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                "İşlem tamamlanıyor...",
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -573,7 +761,9 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
   // Helper metodlar
 
   String _getStatusMessage(NFCState nfcState) {
-    if (!_writeStarted) {
+    if (_isCallingKartYazimBitis) {
+      return "İşlem Tamamlanıyor...";
+    } else if (!_writeStarted) {
       return "Karta yükleniyor...";
     } else if (!_cardValidated && nfcState.isLoading) {
       return "Kart kontrol ediliyor...";
@@ -592,7 +782,9 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
   }
 
   String _getSubStatusMessage(NFCState nfcState) {
-    if (!_writeStarted) {
+    if (_isCallingKartYazimBitis) {
+      return "Sunucu işlemi onaylıyor...";
+    } else if (!_writeStarted) {
       return "İşlem başlatılıyor...";
     } else if (!_cardValidated && nfcState.isLoading) {
       return "Güvenlik kontrolü...";
@@ -609,7 +801,7 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
   }
 
   double? _getProgressValue(NFCState nfcState) {
-    if (nfcState.writeCompleted) {
+    if (nfcState.writeCompleted || _isCallingKartYazimBitis) {
       return 1.0; // Sadece tamamlandığında %100
     } else {
       return null; // Diğer tüm durumlarda indeterminate (döner)
@@ -625,7 +817,8 @@ class _KartaYuklemeState extends ConsumerState<KartaYukleme>
         !nfcState.message.toLowerCase().contains('checking') &&
         nfcState.message != 'DIFFERENT_CARD_DETECTED' &&
         !nfcState.isLoading &&
-        !nfcState.isWriteInProgress;
+        !nfcState.isWriteInProgress &&
+        !_isCallingKartYazimBitis;
   }
 
   Widget _buildErrorSection(NFCState nfcState) {

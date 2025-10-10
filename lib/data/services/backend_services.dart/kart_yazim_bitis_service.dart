@@ -11,12 +11,13 @@ class KartYazimBitisService {
     required OturumBilgileri oturumBilgileri,
     String? odemeId,
   }) async {
-    final url = Uri.parse("${Env.apiUrl}/esayac/nfc/kartYazimBitis");
+    final url = Uri.parse("${Env.apiUrl}/nfc/kartYazimBitis");
 
     final request = KartYazimBitisRequest(
       oturumBilgileri: oturumBilgileri,
       odemeId: odemeId,
     );
+    print("kart yazim bitis request: $request");
 
     // ✅ Sertifika doğrulamasını devre dışı bırak (sadece test için)
     final httpClient = HttpClient()
@@ -30,7 +31,7 @@ class KartYazimBitisService {
       body: jsonEncode(request.toJson()),
     );
 
-    print("kart yazim response: ${response.body}");
+    print("kart yazim bitis response: ${response.body}");
 
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);

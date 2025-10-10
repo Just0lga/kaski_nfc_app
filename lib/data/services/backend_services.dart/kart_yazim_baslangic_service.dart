@@ -11,12 +11,13 @@ class KartYazimBaslangicService {
     required OturumBilgileri oturumBilgileri,
     String? odemeId,
   }) async {
-    final url = Uri.parse("${Env.apiUrl}/esayac/nfc/kartYazimBaslangic");
+    final url = Uri.parse("${Env.apiUrl}/nfc/kartYazimBaslangic");
 
     final request = KartYazimBaslangicRequest(
       oturumBilgileri: oturumBilgileri,
       odemeId: odemeId,
     );
+    print("kart yazim baslangic request: $request");
 
     // ✅ Sertifika doğrulamasını devre dışı bırak (sadece test için)
     final httpClient = HttpClient()
@@ -30,7 +31,7 @@ class KartYazimBaslangicService {
       body: jsonEncode(request.toJson()),
     );
 
-    print("kart yazim response: ${response.body}");
+    print("kart yazim baslangic response: ${response.body}");
 
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
