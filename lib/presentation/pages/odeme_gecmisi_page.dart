@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:kaski_nfc_app/data/models/backend_models/gecmis_bilgiler.dart';
 import 'package:kaski_nfc_app/data/models/backend_models/oturum_bilgileri.dart';
 import 'package:kaski_nfc_app/data/models/frontend_models/consumer_card.dart';
 import 'package:kaski_nfc_app/data/services/frontend_services.dart/device_service.dart';
 import 'package:kaski_nfc_app/presentation/controllers/gecmis_bilgiler_controller.dart';
 import 'package:kaski_nfc_app/presentation/pages/main_page.dart';
+import 'package:kaski_nfc_app/presentation/pages/odeme_gecmisi_ayrintili_page.dart';
 import 'package:kaski_nfc_app/presentation/providers/nfc_provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -77,6 +79,16 @@ class _OdemeGecmisiPageState extends ConsumerState<OdemeGecmisiPage> {
           _errorMessage = 'Abone bilgileri yüklenirken bir hata oluştu';
         });
       }
+    }
+  }
+
+  String formatDate(String? date) {
+    if (date == null) return "-";
+    try {
+      final dt = DateTime.parse(date);
+      return DateFormat('dd/MM/yyyy HH:mm').format(dt);
+    } catch (e) {
+      return date;
     }
   }
 
@@ -281,7 +293,16 @@ class _OdemeGecmisiPageState extends ConsumerState<OdemeGecmisiPage> {
                     color: Colors.transparent,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(16),
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => OdemeGecmisiAyrintiliPage(
+                              gecmisBilgilerResponse: item,
+                            ),
+                          ),
+                        );
+                      },
                       child: Padding(
                         padding: EdgeInsets.all(20),
                         child: Column(
@@ -313,15 +334,33 @@ class _OdemeGecmisiPageState extends ConsumerState<OdemeGecmisiPage> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text(
-                                              "Tutar",
-                                              style: TextStyle(
-                                                color: Colors.white.withOpacity(
-                                                  0.9,
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  "Tutar",
+                                                  style: TextStyle(
+                                                    color: Colors.white
+                                                        .withOpacity(0.9),
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w400,
+                                                  ),
                                                 ),
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w400,
-                                              ),
+                                                Text(
+                                                  formatDate(
+                                                    item.basIslemTarihi
+                                                        .toString(),
+                                                  ),
+                                                  style: TextStyle(
+                                                    color: Colors.white
+                                                        .withOpacity(0.9),
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w400,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                             SizedBox(height: 2),
                                             Text(
