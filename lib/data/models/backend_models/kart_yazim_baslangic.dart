@@ -20,7 +20,6 @@ class KartYazimBaslangicResponse with _$KartYazimBaslangicResponse {
   const factory KartYazimBaslangicResponse({
     String? hata,
     String? hataAciklama,
-    String? durum,
   }) = _KartYazimBaslangicResponse;
 
   factory KartYazimBaslangicResponse.fromJson(Map<String, dynamic> json) =>

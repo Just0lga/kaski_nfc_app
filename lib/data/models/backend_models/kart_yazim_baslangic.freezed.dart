@@ -224,7 +224,6 @@ KartYazimBaslangicResponse _$KartYazimBaslangicResponseFromJson(
 mixin _$KartYazimBaslangicResponse {
   String? get hata => throw _privateConstructorUsedError;
   String? get hataAciklama => throw _privateConstructorUsedError;
-  String? get durum => throw _privateConstructorUsedError;
 
   /// Serializes this KartYazimBaslangicResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -247,7 +246,7 @@ abstract class $KartYazimBaslangicResponseCopyWith<$Res> {
         KartYazimBaslangicResponse
       >;
   @useResult
-  $Res call({String? hata, String? hataAciklama, String? durum});
+  $Res call({String? hata, String? hataAciklama});
 }
 
 /// @nodoc
@@ -267,11 +266,7 @@ class _$KartYazimBaslangicResponseCopyWithImpl<
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? hata = freezed,
-    Object? hataAciklama = freezed,
-    Object? durum = freezed,
-  }) {
+  $Res call({Object? hata = freezed, Object? hataAciklama = freezed}) {
     return _then(
       _value.copyWith(
             hata: freezed == hata
@@ -281,10 +276,6 @@ class _$KartYazimBaslangicResponseCopyWithImpl<
             hataAciklama: freezed == hataAciklama
                 ? _value.hataAciklama
                 : hataAciklama // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            durum: freezed == durum
-                ? _value.durum
-                : durum // ignore: cast_nullable_to_non_nullable
                       as String?,
           )
           as $Val,
@@ -301,7 +292,7 @@ abstract class _$$KartYazimBaslangicResponseImplCopyWith<$Res>
   ) = __$$KartYazimBaslangicResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String? hata, String? hataAciklama, String? durum});
+  $Res call({String? hata, String? hataAciklama});
 }
 
 /// @nodoc
@@ -321,11 +312,7 @@ class __$$KartYazimBaslangicResponseImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? hata = freezed,
-    Object? hataAciklama = freezed,
-    Object? durum = freezed,
-  }) {
+  $Res call({Object? hata = freezed, Object? hataAciklama = freezed}) {
     return _then(
       _$KartYazimBaslangicResponseImpl(
         hata: freezed == hata
@@ -336,10 +323,6 @@ class __$$KartYazimBaslangicResponseImplCopyWithImpl<$Res>
             ? _value.hataAciklama
             : hataAciklama // ignore: cast_nullable_to_non_nullable
                   as String?,
-        durum: freezed == durum
-            ? _value.durum
-            : durum // ignore: cast_nullable_to_non_nullable
-                  as String?,
       ),
     );
   }
@@ -348,11 +331,7 @@ class __$$KartYazimBaslangicResponseImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$KartYazimBaslangicResponseImpl implements _KartYazimBaslangicResponse {
-  const _$KartYazimBaslangicResponseImpl({
-    this.hata,
-    this.hataAciklama,
-    this.durum,
-  });
+  const _$KartYazimBaslangicResponseImpl({this.hata, this.hataAciklama});
 
   factory _$KartYazimBaslangicResponseImpl.fromJson(
     Map<String, dynamic> json,
@@ -362,12 +341,10 @@ class _$KartYazimBaslangicResponseImpl implements _KartYazimBaslangicResponse {
   final String? hata;
   @override
   final String? hataAciklama;
-  @override
-  final String? durum;
 
   @override
   String toString() {
-    return 'KartYazimBaslangicResponse(hata: $hata, hataAciklama: $hataAciklama, durum: $durum)';
+    return 'KartYazimBaslangicResponse(hata: $hata, hataAciklama: $hataAciklama)';
   }
 
   @override
@@ -377,13 +354,12 @@ class _$KartYazimBaslangicResponseImpl implements _KartYazimBaslangicResponse {
             other is _$KartYazimBaslangicResponseImpl &&
             (identical(other.hata, hata) || other.hata == hata) &&
             (identical(other.hataAciklama, hataAciklama) ||
-                other.hataAciklama == hataAciklama) &&
-            (identical(other.durum, durum) || other.durum == durum));
+                other.hataAciklama == hataAciklama));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, hata, hataAciklama, durum);
+  int get hashCode => Object.hash(runtimeType, hata, hataAciklama);
 
   /// Create a copy of KartYazimBaslangicResponse
   /// with the given fields replaced by the non-null parameter values.
@@ -407,7 +383,6 @@ abstract class _KartYazimBaslangicResponse
   const factory _KartYazimBaslangicResponse({
     final String? hata,
     final String? hataAciklama,
-    final String? durum,
   }) = _$KartYazimBaslangicResponseImpl;
 
   factory _KartYazimBaslangicResponse.fromJson(Map<String, dynamic> json) =
@@ -417,8 +392,6 @@ abstract class _KartYazimBaslangicResponse
   String? get hata;
   @override
   String? get hataAciklama;
-  @override
-  String? get durum;
 
   /// Create a copy of KartYazimBaslangicResponse
   /// with the given fields replaced by the non-null parameter values.

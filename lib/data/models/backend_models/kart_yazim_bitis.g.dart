@@ -27,7 +27,6 @@ _$KartYazimBitisResponseImpl _$$KartYazimBitisResponseImplFromJson(
 ) => _$KartYazimBitisResponseImpl(
   hata: json['hata'] as String?,
   hataAciklama: json['hataAciklama'] as String?,
-  durum: json['durum'] as String?,
 );
 
 Map<String, dynamic> _$$KartYazimBitisResponseImplToJson(
@@ -35,5 +34,4 @@ Map<String, dynamic> _$$KartYazimBitisResponseImplToJson(
 ) => <String, dynamic>{
   'hata': instance.hata,
   'hataAciklama': instance.hataAciklama,
-  'durum': instance.durum,
 };

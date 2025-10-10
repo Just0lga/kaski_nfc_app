@@ -17,11 +17,8 @@ class KartYazimBitisRequest with _$KartYazimBitisRequest {
 
 @freezed
 class KartYazimBitisResponse with _$KartYazimBitisResponse {
-  const factory KartYazimBitisResponse({
-    String? hata,
-    String? hataAciklama,
-    String? durum,
-  }) = _KartYazimBitisResponse;
+  const factory KartYazimBitisResponse({String? hata, String? hataAciklama}) =
+      _KartYazimBitisResponse;
 
   factory KartYazimBitisResponse.fromJson(Map<String, dynamic> json) =>
       _$KartYazimBitisResponseFromJson(json);
