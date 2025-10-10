@@ -202,12 +202,32 @@ GecmisBilgilerResponse _$GecmisBilgilerResponseFromJson(
 
 /// @nodoc
 mixin _$GecmisBilgilerResponse {
-  String? get hata => throw _privateConstructorUsedError;
-  String? get hataAciklama => throw _privateConstructorUsedError;
-  String? get odemeId => throw _privateConstructorUsedError;
-  Map<String, dynamic>? get odemeBaslat => throw _privateConstructorUsedError;
-  String? get odemeSonuc => throw _privateConstructorUsedError;
-  String? get kartyazimSonuc => throw _privateConstructorUsedError;
+  int? get basBnkEntid => throw _privateConstructorUsedError;
+  DateTime? get basIslemTarihi => throw _privateConstructorUsedError;
+  String? get basOdemeId => throw _privateConstructorUsedError;
+  int? get basPaydeskKodu => throw _privateConstructorUsedError;
+  int? get basTon => throw _privateConstructorUsedError;
+  double? get basTutar => throw _privateConstructorUsedError;
+  String? get basUrl => throw _privateConstructorUsedError;
+  DateTime? get guncellemeTarihi => throw _privateConstructorUsedError;
+  int? get id => throw _privateConstructorUsedError;
+  DateTime? get kayitTarihi => throw _privateConstructorUsedError;
+  DateTime? get krtYazimBaslangicTarihi => throw _privateConstructorUsedError;
+  DateTime? get krtYazimTarihi => throw _privateConstructorUsedError;
+  int? get kurumId => throw _privateConstructorUsedError;
+  int? get otrmAboneNo => throw _privateConstructorUsedError;
+  String? get otrmCihazId => throw _privateConstructorUsedError;
+  String? get otrmCihazModel => throw _privateConstructorUsedError;
+  String? get otrmKartSeriNo => throw _privateConstructorUsedError;
+  DateTime? get otrmOturumTarihi => throw _privateConstructorUsedError;
+  String? get otrmSayfa => throw _privateConstructorUsedError;
+  String? get otrmUygulamaVersiyonu => throw _privateConstructorUsedError;
+  String? get sncBanka => throw _privateConstructorUsedError;
+  DateTime? get sncBankaIslemTarihi => throw _privateConstructorUsedError;
+  String? get sncEkys => throw _privateConstructorUsedError;
+  String? get sncEkysErr => throw _privateConstructorUsedError;
+  DateTime? get sncEkysIslemTarihi => throw _privateConstructorUsedError;
+  String? get sncEkysThkid => throw _privateConstructorUsedError;
 
   /// Serializes this GecmisBilgilerResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -227,12 +247,32 @@ abstract class $GecmisBilgilerResponseCopyWith<$Res> {
   ) = _$GecmisBilgilerResponseCopyWithImpl<$Res, GecmisBilgilerResponse>;
   @useResult
   $Res call({
-    String? hata,
-    String? hataAciklama,
-    String? odemeId,
-    Map<String, dynamic>? odemeBaslat,
-    String? odemeSonuc,
-    String? kartyazimSonuc,
+    int? basBnkEntid,
+    DateTime? basIslemTarihi,
+    String? basOdemeId,
+    int? basPaydeskKodu,
+    int? basTon,
+    double? basTutar,
+    String? basUrl,
+    DateTime? guncellemeTarihi,
+    int? id,
+    DateTime? kayitTarihi,
+    DateTime? krtYazimBaslangicTarihi,
+    DateTime? krtYazimTarihi,
+    int? kurumId,
+    int? otrmAboneNo,
+    String? otrmCihazId,
+    String? otrmCihazModel,
+    String? otrmKartSeriNo,
+    DateTime? otrmOturumTarihi,
+    String? otrmSayfa,
+    String? otrmUygulamaVersiyonu,
+    String? sncBanka,
+    DateTime? sncBankaIslemTarihi,
+    String? sncEkys,
+    String? sncEkysErr,
+    DateTime? sncEkysIslemTarihi,
+    String? sncEkysThkid,
   });
 }
 
@@ -254,38 +294,138 @@ class _$GecmisBilgilerResponseCopyWithImpl<
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? hata = freezed,
-    Object? hataAciklama = freezed,
-    Object? odemeId = freezed,
-    Object? odemeBaslat = freezed,
-    Object? odemeSonuc = freezed,
-    Object? kartyazimSonuc = freezed,
+    Object? basBnkEntid = freezed,
+    Object? basIslemTarihi = freezed,
+    Object? basOdemeId = freezed,
+    Object? basPaydeskKodu = freezed,
+    Object? basTon = freezed,
+    Object? basTutar = freezed,
+    Object? basUrl = freezed,
+    Object? guncellemeTarihi = freezed,
+    Object? id = freezed,
+    Object? kayitTarihi = freezed,
+    Object? krtYazimBaslangicTarihi = freezed,
+    Object? krtYazimTarihi = freezed,
+    Object? kurumId = freezed,
+    Object? otrmAboneNo = freezed,
+    Object? otrmCihazId = freezed,
+    Object? otrmCihazModel = freezed,
+    Object? otrmKartSeriNo = freezed,
+    Object? otrmOturumTarihi = freezed,
+    Object? otrmSayfa = freezed,
+    Object? otrmUygulamaVersiyonu = freezed,
+    Object? sncBanka = freezed,
+    Object? sncBankaIslemTarihi = freezed,
+    Object? sncEkys = freezed,
+    Object? sncEkysErr = freezed,
+    Object? sncEkysIslemTarihi = freezed,
+    Object? sncEkysThkid = freezed,
   }) {
     return _then(
       _value.copyWith(
-            hata: freezed == hata
-                ? _value.hata
-                : hata // ignore: cast_nullable_to_non_nullable
+            basBnkEntid: freezed == basBnkEntid
+                ? _value.basBnkEntid
+                : basBnkEntid // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            basIslemTarihi: freezed == basIslemTarihi
+                ? _value.basIslemTarihi
+                : basIslemTarihi // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            basOdemeId: freezed == basOdemeId
+                ? _value.basOdemeId
+                : basOdemeId // ignore: cast_nullable_to_non_nullable
                       as String?,
-            hataAciklama: freezed == hataAciklama
-                ? _value.hataAciklama
-                : hataAciklama // ignore: cast_nullable_to_non_nullable
+            basPaydeskKodu: freezed == basPaydeskKodu
+                ? _value.basPaydeskKodu
+                : basPaydeskKodu // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            basTon: freezed == basTon
+                ? _value.basTon
+                : basTon // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            basTutar: freezed == basTutar
+                ? _value.basTutar
+                : basTutar // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            basUrl: freezed == basUrl
+                ? _value.basUrl
+                : basUrl // ignore: cast_nullable_to_non_nullable
                       as String?,
-            odemeId: freezed == odemeId
-                ? _value.odemeId
-                : odemeId // ignore: cast_nullable_to_non_nullable
+            guncellemeTarihi: freezed == guncellemeTarihi
+                ? _value.guncellemeTarihi
+                : guncellemeTarihi // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            id: freezed == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            kayitTarihi: freezed == kayitTarihi
+                ? _value.kayitTarihi
+                : kayitTarihi // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            krtYazimBaslangicTarihi: freezed == krtYazimBaslangicTarihi
+                ? _value.krtYazimBaslangicTarihi
+                : krtYazimBaslangicTarihi // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            krtYazimTarihi: freezed == krtYazimTarihi
+                ? _value.krtYazimTarihi
+                : krtYazimTarihi // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            kurumId: freezed == kurumId
+                ? _value.kurumId
+                : kurumId // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            otrmAboneNo: freezed == otrmAboneNo
+                ? _value.otrmAboneNo
+                : otrmAboneNo // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            otrmCihazId: freezed == otrmCihazId
+                ? _value.otrmCihazId
+                : otrmCihazId // ignore: cast_nullable_to_non_nullable
                       as String?,
-            odemeBaslat: freezed == odemeBaslat
-                ? _value.odemeBaslat
-                : odemeBaslat // ignore: cast_nullable_to_non_nullable
-                      as Map<String, dynamic>?,
-            odemeSonuc: freezed == odemeSonuc
-                ? _value.odemeSonuc
-                : odemeSonuc // ignore: cast_nullable_to_non_nullable
+            otrmCihazModel: freezed == otrmCihazModel
+                ? _value.otrmCihazModel
+                : otrmCihazModel // ignore: cast_nullable_to_non_nullable
                       as String?,
-            kartyazimSonuc: freezed == kartyazimSonuc
-                ? _value.kartyazimSonuc
-                : kartyazimSonuc // ignore: cast_nullable_to_non_nullable
+            otrmKartSeriNo: freezed == otrmKartSeriNo
+                ? _value.otrmKartSeriNo
+                : otrmKartSeriNo // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            otrmOturumTarihi: freezed == otrmOturumTarihi
+                ? _value.otrmOturumTarihi
+                : otrmOturumTarihi // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            otrmSayfa: freezed == otrmSayfa
+                ? _value.otrmSayfa
+                : otrmSayfa // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            otrmUygulamaVersiyonu: freezed == otrmUygulamaVersiyonu
+                ? _value.otrmUygulamaVersiyonu
+                : otrmUygulamaVersiyonu // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            sncBanka: freezed == sncBanka
+                ? _value.sncBanka
+                : sncBanka // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            sncBankaIslemTarihi: freezed == sncBankaIslemTarihi
+                ? _value.sncBankaIslemTarihi
+                : sncBankaIslemTarihi // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            sncEkys: freezed == sncEkys
+                ? _value.sncEkys
+                : sncEkys // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            sncEkysErr: freezed == sncEkysErr
+                ? _value.sncEkysErr
+                : sncEkysErr // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            sncEkysIslemTarihi: freezed == sncEkysIslemTarihi
+                ? _value.sncEkysIslemTarihi
+                : sncEkysIslemTarihi // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            sncEkysThkid: freezed == sncEkysThkid
+                ? _value.sncEkysThkid
+                : sncEkysThkid // ignore: cast_nullable_to_non_nullable
                       as String?,
           )
           as $Val,
@@ -303,12 +443,32 @@ abstract class _$$GecmisBilgilerResponseImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    String? hata,
-    String? hataAciklama,
-    String? odemeId,
-    Map<String, dynamic>? odemeBaslat,
-    String? odemeSonuc,
-    String? kartyazimSonuc,
+    int? basBnkEntid,
+    DateTime? basIslemTarihi,
+    String? basOdemeId,
+    int? basPaydeskKodu,
+    int? basTon,
+    double? basTutar,
+    String? basUrl,
+    DateTime? guncellemeTarihi,
+    int? id,
+    DateTime? kayitTarihi,
+    DateTime? krtYazimBaslangicTarihi,
+    DateTime? krtYazimTarihi,
+    int? kurumId,
+    int? otrmAboneNo,
+    String? otrmCihazId,
+    String? otrmCihazModel,
+    String? otrmKartSeriNo,
+    DateTime? otrmOturumTarihi,
+    String? otrmSayfa,
+    String? otrmUygulamaVersiyonu,
+    String? sncBanka,
+    DateTime? sncBankaIslemTarihi,
+    String? sncEkys,
+    String? sncEkysErr,
+    DateTime? sncEkysIslemTarihi,
+    String? sncEkysThkid,
   });
 }
 
@@ -327,38 +487,138 @@ class __$$GecmisBilgilerResponseImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? hata = freezed,
-    Object? hataAciklama = freezed,
-    Object? odemeId = freezed,
-    Object? odemeBaslat = freezed,
-    Object? odemeSonuc = freezed,
-    Object? kartyazimSonuc = freezed,
+    Object? basBnkEntid = freezed,
+    Object? basIslemTarihi = freezed,
+    Object? basOdemeId = freezed,
+    Object? basPaydeskKodu = freezed,
+    Object? basTon = freezed,
+    Object? basTutar = freezed,
+    Object? basUrl = freezed,
+    Object? guncellemeTarihi = freezed,
+    Object? id = freezed,
+    Object? kayitTarihi = freezed,
+    Object? krtYazimBaslangicTarihi = freezed,
+    Object? krtYazimTarihi = freezed,
+    Object? kurumId = freezed,
+    Object? otrmAboneNo = freezed,
+    Object? otrmCihazId = freezed,
+    Object? otrmCihazModel = freezed,
+    Object? otrmKartSeriNo = freezed,
+    Object? otrmOturumTarihi = freezed,
+    Object? otrmSayfa = freezed,
+    Object? otrmUygulamaVersiyonu = freezed,
+    Object? sncBanka = freezed,
+    Object? sncBankaIslemTarihi = freezed,
+    Object? sncEkys = freezed,
+    Object? sncEkysErr = freezed,
+    Object? sncEkysIslemTarihi = freezed,
+    Object? sncEkysThkid = freezed,
   }) {
     return _then(
       _$GecmisBilgilerResponseImpl(
-        hata: freezed == hata
-            ? _value.hata
-            : hata // ignore: cast_nullable_to_non_nullable
+        basBnkEntid: freezed == basBnkEntid
+            ? _value.basBnkEntid
+            : basBnkEntid // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        basIslemTarihi: freezed == basIslemTarihi
+            ? _value.basIslemTarihi
+            : basIslemTarihi // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        basOdemeId: freezed == basOdemeId
+            ? _value.basOdemeId
+            : basOdemeId // ignore: cast_nullable_to_non_nullable
                   as String?,
-        hataAciklama: freezed == hataAciklama
-            ? _value.hataAciklama
-            : hataAciklama // ignore: cast_nullable_to_non_nullable
+        basPaydeskKodu: freezed == basPaydeskKodu
+            ? _value.basPaydeskKodu
+            : basPaydeskKodu // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        basTon: freezed == basTon
+            ? _value.basTon
+            : basTon // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        basTutar: freezed == basTutar
+            ? _value.basTutar
+            : basTutar // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        basUrl: freezed == basUrl
+            ? _value.basUrl
+            : basUrl // ignore: cast_nullable_to_non_nullable
                   as String?,
-        odemeId: freezed == odemeId
-            ? _value.odemeId
-            : odemeId // ignore: cast_nullable_to_non_nullable
+        guncellemeTarihi: freezed == guncellemeTarihi
+            ? _value.guncellemeTarihi
+            : guncellemeTarihi // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        id: freezed == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        kayitTarihi: freezed == kayitTarihi
+            ? _value.kayitTarihi
+            : kayitTarihi // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        krtYazimBaslangicTarihi: freezed == krtYazimBaslangicTarihi
+            ? _value.krtYazimBaslangicTarihi
+            : krtYazimBaslangicTarihi // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        krtYazimTarihi: freezed == krtYazimTarihi
+            ? _value.krtYazimTarihi
+            : krtYazimTarihi // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        kurumId: freezed == kurumId
+            ? _value.kurumId
+            : kurumId // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        otrmAboneNo: freezed == otrmAboneNo
+            ? _value.otrmAboneNo
+            : otrmAboneNo // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        otrmCihazId: freezed == otrmCihazId
+            ? _value.otrmCihazId
+            : otrmCihazId // ignore: cast_nullable_to_non_nullable
                   as String?,
-        odemeBaslat: freezed == odemeBaslat
-            ? _value._odemeBaslat
-            : odemeBaslat // ignore: cast_nullable_to_non_nullable
-                  as Map<String, dynamic>?,
-        odemeSonuc: freezed == odemeSonuc
-            ? _value.odemeSonuc
-            : odemeSonuc // ignore: cast_nullable_to_non_nullable
+        otrmCihazModel: freezed == otrmCihazModel
+            ? _value.otrmCihazModel
+            : otrmCihazModel // ignore: cast_nullable_to_non_nullable
                   as String?,
-        kartyazimSonuc: freezed == kartyazimSonuc
-            ? _value.kartyazimSonuc
-            : kartyazimSonuc // ignore: cast_nullable_to_non_nullable
+        otrmKartSeriNo: freezed == otrmKartSeriNo
+            ? _value.otrmKartSeriNo
+            : otrmKartSeriNo // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        otrmOturumTarihi: freezed == otrmOturumTarihi
+            ? _value.otrmOturumTarihi
+            : otrmOturumTarihi // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        otrmSayfa: freezed == otrmSayfa
+            ? _value.otrmSayfa
+            : otrmSayfa // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        otrmUygulamaVersiyonu: freezed == otrmUygulamaVersiyonu
+            ? _value.otrmUygulamaVersiyonu
+            : otrmUygulamaVersiyonu // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        sncBanka: freezed == sncBanka
+            ? _value.sncBanka
+            : sncBanka // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        sncBankaIslemTarihi: freezed == sncBankaIslemTarihi
+            ? _value.sncBankaIslemTarihi
+            : sncBankaIslemTarihi // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        sncEkys: freezed == sncEkys
+            ? _value.sncEkys
+            : sncEkys // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        sncEkysErr: freezed == sncEkysErr
+            ? _value.sncEkysErr
+            : sncEkysErr // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        sncEkysIslemTarihi: freezed == sncEkysIslemTarihi
+            ? _value.sncEkysIslemTarihi
+            : sncEkysIslemTarihi // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        sncEkysThkid: freezed == sncEkysThkid
+            ? _value.sncEkysThkid
+            : sncEkysThkid // ignore: cast_nullable_to_non_nullable
                   as String?,
       ),
     );
@@ -369,41 +629,93 @@ class __$$GecmisBilgilerResponseImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$GecmisBilgilerResponseImpl implements _GecmisBilgilerResponse {
   const _$GecmisBilgilerResponseImpl({
-    this.hata,
-    this.hataAciklama,
-    this.odemeId,
-    final Map<String, dynamic>? odemeBaslat,
-    this.odemeSonuc,
-    this.kartyazimSonuc,
-  }) : _odemeBaslat = odemeBaslat;
+    this.basBnkEntid,
+    this.basIslemTarihi,
+    this.basOdemeId,
+    this.basPaydeskKodu,
+    this.basTon,
+    this.basTutar,
+    this.basUrl,
+    this.guncellemeTarihi,
+    this.id,
+    this.kayitTarihi,
+    this.krtYazimBaslangicTarihi,
+    this.krtYazimTarihi,
+    this.kurumId,
+    this.otrmAboneNo,
+    this.otrmCihazId,
+    this.otrmCihazModel,
+    this.otrmKartSeriNo,
+    this.otrmOturumTarihi,
+    this.otrmSayfa,
+    this.otrmUygulamaVersiyonu,
+    this.sncBanka,
+    this.sncBankaIslemTarihi,
+    this.sncEkys,
+    this.sncEkysErr,
+    this.sncEkysIslemTarihi,
+    this.sncEkysThkid,
+  });
 
   factory _$GecmisBilgilerResponseImpl.fromJson(Map<String, dynamic> json) =>
       _$$GecmisBilgilerResponseImplFromJson(json);
 
   @override
-  final String? hata;
+  final int? basBnkEntid;
   @override
-  final String? hataAciklama;
+  final DateTime? basIslemTarihi;
   @override
-  final String? odemeId;
-  final Map<String, dynamic>? _odemeBaslat;
+  final String? basOdemeId;
   @override
-  Map<String, dynamic>? get odemeBaslat {
-    final value = _odemeBaslat;
-    if (value == null) return null;
-    if (_odemeBaslat is EqualUnmodifiableMapView) return _odemeBaslat;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableMapView(value);
-  }
-
+  final int? basPaydeskKodu;
   @override
-  final String? odemeSonuc;
+  final int? basTon;
   @override
-  final String? kartyazimSonuc;
+  final double? basTutar;
+  @override
+  final String? basUrl;
+  @override
+  final DateTime? guncellemeTarihi;
+  @override
+  final int? id;
+  @override
+  final DateTime? kayitTarihi;
+  @override
+  final DateTime? krtYazimBaslangicTarihi;
+  @override
+  final DateTime? krtYazimTarihi;
+  @override
+  final int? kurumId;
+  @override
+  final int? otrmAboneNo;
+  @override
+  final String? otrmCihazId;
+  @override
+  final String? otrmCihazModel;
+  @override
+  final String? otrmKartSeriNo;
+  @override
+  final DateTime? otrmOturumTarihi;
+  @override
+  final String? otrmSayfa;
+  @override
+  final String? otrmUygulamaVersiyonu;
+  @override
+  final String? sncBanka;
+  @override
+  final DateTime? sncBankaIslemTarihi;
+  @override
+  final String? sncEkys;
+  @override
+  final String? sncEkysErr;
+  @override
+  final DateTime? sncEkysIslemTarihi;
+  @override
+  final String? sncEkysThkid;
 
   @override
   String toString() {
-    return 'GecmisBilgilerResponse(hata: $hata, hataAciklama: $hataAciklama, odemeId: $odemeId, odemeBaslat: $odemeBaslat, odemeSonuc: $odemeSonuc, kartyazimSonuc: $kartyazimSonuc)';
+    return 'GecmisBilgilerResponse(basBnkEntid: $basBnkEntid, basIslemTarihi: $basIslemTarihi, basOdemeId: $basOdemeId, basPaydeskKodu: $basPaydeskKodu, basTon: $basTon, basTutar: $basTutar, basUrl: $basUrl, guncellemeTarihi: $guncellemeTarihi, id: $id, kayitTarihi: $kayitTarihi, krtYazimBaslangicTarihi: $krtYazimBaslangicTarihi, krtYazimTarihi: $krtYazimTarihi, kurumId: $kurumId, otrmAboneNo: $otrmAboneNo, otrmCihazId: $otrmCihazId, otrmCihazModel: $otrmCihazModel, otrmKartSeriNo: $otrmKartSeriNo, otrmOturumTarihi: $otrmOturumTarihi, otrmSayfa: $otrmSayfa, otrmUygulamaVersiyonu: $otrmUygulamaVersiyonu, sncBanka: $sncBanka, sncBankaIslemTarihi: $sncBankaIslemTarihi, sncEkys: $sncEkys, sncEkysErr: $sncEkysErr, sncEkysIslemTarihi: $sncEkysIslemTarihi, sncEkysThkid: $sncEkysThkid)';
   }
 
   @override
@@ -411,31 +723,89 @@ class _$GecmisBilgilerResponseImpl implements _GecmisBilgilerResponse {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$GecmisBilgilerResponseImpl &&
-            (identical(other.hata, hata) || other.hata == hata) &&
-            (identical(other.hataAciklama, hataAciklama) ||
-                other.hataAciklama == hataAciklama) &&
-            (identical(other.odemeId, odemeId) || other.odemeId == odemeId) &&
-            const DeepCollectionEquality().equals(
-              other._odemeBaslat,
-              _odemeBaslat,
-            ) &&
-            (identical(other.odemeSonuc, odemeSonuc) ||
-                other.odemeSonuc == odemeSonuc) &&
-            (identical(other.kartyazimSonuc, kartyazimSonuc) ||
-                other.kartyazimSonuc == kartyazimSonuc));
+            (identical(other.basBnkEntid, basBnkEntid) ||
+                other.basBnkEntid == basBnkEntid) &&
+            (identical(other.basIslemTarihi, basIslemTarihi) ||
+                other.basIslemTarihi == basIslemTarihi) &&
+            (identical(other.basOdemeId, basOdemeId) ||
+                other.basOdemeId == basOdemeId) &&
+            (identical(other.basPaydeskKodu, basPaydeskKodu) ||
+                other.basPaydeskKodu == basPaydeskKodu) &&
+            (identical(other.basTon, basTon) || other.basTon == basTon) &&
+            (identical(other.basTutar, basTutar) ||
+                other.basTutar == basTutar) &&
+            (identical(other.basUrl, basUrl) || other.basUrl == basUrl) &&
+            (identical(other.guncellemeTarihi, guncellemeTarihi) ||
+                other.guncellemeTarihi == guncellemeTarihi) &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.kayitTarihi, kayitTarihi) ||
+                other.kayitTarihi == kayitTarihi) &&
+            (identical(
+                  other.krtYazimBaslangicTarihi,
+                  krtYazimBaslangicTarihi,
+                ) ||
+                other.krtYazimBaslangicTarihi == krtYazimBaslangicTarihi) &&
+            (identical(other.krtYazimTarihi, krtYazimTarihi) ||
+                other.krtYazimTarihi == krtYazimTarihi) &&
+            (identical(other.kurumId, kurumId) || other.kurumId == kurumId) &&
+            (identical(other.otrmAboneNo, otrmAboneNo) ||
+                other.otrmAboneNo == otrmAboneNo) &&
+            (identical(other.otrmCihazId, otrmCihazId) ||
+                other.otrmCihazId == otrmCihazId) &&
+            (identical(other.otrmCihazModel, otrmCihazModel) ||
+                other.otrmCihazModel == otrmCihazModel) &&
+            (identical(other.otrmKartSeriNo, otrmKartSeriNo) ||
+                other.otrmKartSeriNo == otrmKartSeriNo) &&
+            (identical(other.otrmOturumTarihi, otrmOturumTarihi) ||
+                other.otrmOturumTarihi == otrmOturumTarihi) &&
+            (identical(other.otrmSayfa, otrmSayfa) ||
+                other.otrmSayfa == otrmSayfa) &&
+            (identical(other.otrmUygulamaVersiyonu, otrmUygulamaVersiyonu) ||
+                other.otrmUygulamaVersiyonu == otrmUygulamaVersiyonu) &&
+            (identical(other.sncBanka, sncBanka) ||
+                other.sncBanka == sncBanka) &&
+            (identical(other.sncBankaIslemTarihi, sncBankaIslemTarihi) ||
+                other.sncBankaIslemTarihi == sncBankaIslemTarihi) &&
+            (identical(other.sncEkys, sncEkys) || other.sncEkys == sncEkys) &&
+            (identical(other.sncEkysErr, sncEkysErr) ||
+                other.sncEkysErr == sncEkysErr) &&
+            (identical(other.sncEkysIslemTarihi, sncEkysIslemTarihi) ||
+                other.sncEkysIslemTarihi == sncEkysIslemTarihi) &&
+            (identical(other.sncEkysThkid, sncEkysThkid) ||
+                other.sncEkysThkid == sncEkysThkid));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
-    hata,
-    hataAciklama,
-    odemeId,
-    const DeepCollectionEquality().hash(_odemeBaslat),
-    odemeSonuc,
-    kartyazimSonuc,
-  );
+    basBnkEntid,
+    basIslemTarihi,
+    basOdemeId,
+    basPaydeskKodu,
+    basTon,
+    basTutar,
+    basUrl,
+    guncellemeTarihi,
+    id,
+    kayitTarihi,
+    krtYazimBaslangicTarihi,
+    krtYazimTarihi,
+    kurumId,
+    otrmAboneNo,
+    otrmCihazId,
+    otrmCihazModel,
+    otrmKartSeriNo,
+    otrmOturumTarihi,
+    otrmSayfa,
+    otrmUygulamaVersiyonu,
+    sncBanka,
+    sncBankaIslemTarihi,
+    sncEkys,
+    sncEkysErr,
+    sncEkysIslemTarihi,
+    sncEkysThkid,
+  ]);
 
   /// Create a copy of GecmisBilgilerResponse
   /// with the given fields replaced by the non-null parameter values.
@@ -457,29 +827,89 @@ class _$GecmisBilgilerResponseImpl implements _GecmisBilgilerResponse {
 
 abstract class _GecmisBilgilerResponse implements GecmisBilgilerResponse {
   const factory _GecmisBilgilerResponse({
-    final String? hata,
-    final String? hataAciklama,
-    final String? odemeId,
-    final Map<String, dynamic>? odemeBaslat,
-    final String? odemeSonuc,
-    final String? kartyazimSonuc,
+    final int? basBnkEntid,
+    final DateTime? basIslemTarihi,
+    final String? basOdemeId,
+    final int? basPaydeskKodu,
+    final int? basTon,
+    final double? basTutar,
+    final String? basUrl,
+    final DateTime? guncellemeTarihi,
+    final int? id,
+    final DateTime? kayitTarihi,
+    final DateTime? krtYazimBaslangicTarihi,
+    final DateTime? krtYazimTarihi,
+    final int? kurumId,
+    final int? otrmAboneNo,
+    final String? otrmCihazId,
+    final String? otrmCihazModel,
+    final String? otrmKartSeriNo,
+    final DateTime? otrmOturumTarihi,
+    final String? otrmSayfa,
+    final String? otrmUygulamaVersiyonu,
+    final String? sncBanka,
+    final DateTime? sncBankaIslemTarihi,
+    final String? sncEkys,
+    final String? sncEkysErr,
+    final DateTime? sncEkysIslemTarihi,
+    final String? sncEkysThkid,
   }) = _$GecmisBilgilerResponseImpl;
 
   factory _GecmisBilgilerResponse.fromJson(Map<String, dynamic> json) =
       _$GecmisBilgilerResponseImpl.fromJson;
 
   @override
-  String? get hata;
+  int? get basBnkEntid;
   @override
-  String? get hataAciklama;
+  DateTime? get basIslemTarihi;
   @override
-  String? get odemeId;
+  String? get basOdemeId;
   @override
-  Map<String, dynamic>? get odemeBaslat;
+  int? get basPaydeskKodu;
   @override
-  String? get odemeSonuc;
+  int? get basTon;
   @override
-  String? get kartyazimSonuc;
+  double? get basTutar;
+  @override
+  String? get basUrl;
+  @override
+  DateTime? get guncellemeTarihi;
+  @override
+  int? get id;
+  @override
+  DateTime? get kayitTarihi;
+  @override
+  DateTime? get krtYazimBaslangicTarihi;
+  @override
+  DateTime? get krtYazimTarihi;
+  @override
+  int? get kurumId;
+  @override
+  int? get otrmAboneNo;
+  @override
+  String? get otrmCihazId;
+  @override
+  String? get otrmCihazModel;
+  @override
+  String? get otrmKartSeriNo;
+  @override
+  DateTime? get otrmOturumTarihi;
+  @override
+  String? get otrmSayfa;
+  @override
+  String? get otrmUygulamaVersiyonu;
+  @override
+  String? get sncBanka;
+  @override
+  DateTime? get sncBankaIslemTarihi;
+  @override
+  String? get sncEkys;
+  @override
+  String? get sncEkysErr;
+  @override
+  DateTime? get sncEkysIslemTarihi;
+  @override
+  String? get sncEkysThkid;
 
   /// Create a copy of GecmisBilgilerResponse
   /// with the given fields replaced by the non-null parameter values.

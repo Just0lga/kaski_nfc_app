@@ -5,10 +5,10 @@ import '../../models/backend_models/gecmis_bilgiler.dart';
 import '../../models/backend_models/oturum_bilgileri.dart';
 
 class GecmisBilgilerService {
-  Future<GecmisBilgilerResponse?> getGecmisBilgiler({
+  Future<List<GecmisBilgilerResponse>?> getGecmisBilgiler({
     required OturumBilgileri oturumBilgileri,
   }) async {
-    final url = Uri.parse("${Env.apiUrl}/esayac/nfc/gecmisBilgiler");
+    final url = Uri.parse("${Env.apiUrl}/nfc/gecmisBilgiler");
 
     final request = GecmisBilgilerRequest(oturumBilgileri: oturumBilgileri);
 
@@ -18,11 +18,21 @@ class GecmisBilgilerService {
       body: jsonEncode(request.toJson()),
     );
 
-    print("gecmis bilgiler response: ${response.body}");
+    print(
+      "🟢 GecmisBilgiler response (${response.statusCode}): ${response.body}",
+    );
 
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
-      return GecmisBilgilerResponse.fromJson(decoded);
+
+      // Gelen yanıt bir liste olduğu için map ile parse ediyoruz
+      if (decoded is List) {
+        return decoded.map((e) => GecmisBilgilerResponse.fromJson(e)).toList();
+      } else {
+        print("⚠️ Beklenmedik response formatı: ${decoded.runtimeType}");
+      }
+    } else {
+      print("❌ Hata: ${response.statusCode} ${response.reasonPhrase}");
     }
 
     return null;
